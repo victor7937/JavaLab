@@ -1,0 +1,11 @@
+plugins {
+    id 'multi.project.java-application-conventions'
+}
+
+dependencies {
+    implementation project(':core')
+}
+
+application {
+    mainClass = 'multi.project.app.App'
+}

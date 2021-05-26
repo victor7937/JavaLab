@@ -1,0 +1,44 @@
+plugins {
+    id 'java-library'
+}
+
+version = '1.3.5'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    extraLibs
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+    implementation 'org.apache.commons:commons-lang3:3.1'
+
+    extraLibs 'org.apache.commons:commons-lang3:3.1'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
+    }
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+java {
+    withSourcesJar()
+}
