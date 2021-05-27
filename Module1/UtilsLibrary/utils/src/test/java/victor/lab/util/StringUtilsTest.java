@@ -1,6 +1,7 @@
 package victor.lab.util;
 
 import org.junit.jupiter.api.Test;
+import victor.lab.exception.NotANumberException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,10 +23,10 @@ class StringUtilsTest {
     }
 
     @Test
-    void notNumbersShouldReturnFalse() {
+    void notNumbersShouldThrowsException() {
         assertAll(
-                () -> assertFalse(StringUtils.isPositiveNumber("dfdf")),
-                () -> assertFalse(StringUtils.isPositiveNumber("-1jh11"))
+                () -> assertThrows(NotANumberException.class, () -> StringUtils.isPositiveNumber("dfdf")),
+                () -> assertThrows(NotANumberException.class, () ->  StringUtils.isPositiveNumber("-1jh11"))
         );
     }
 }
