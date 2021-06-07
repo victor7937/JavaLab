@@ -1,12 +1,15 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.entity.Tag;
+import com.epam.esm.message.ResponseExceptionMessage;
 import com.epam.esm.service.TagService;
+import com.epam.esm.service.exception.NotFoundServiceException;
+import com.epam.esm.service.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -28,7 +31,17 @@ public class TagController {
 
     @GetMapping("/{id}")
     public Tag getTagById (@PathVariable("id") int id){
-        return tagService.getById(id);
+        Tag tag;
+        try {
+            tag = tagService.getById(id);
+        } catch (NotFoundServiceException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ServiceException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return tag;
     }
+
+
 
 }

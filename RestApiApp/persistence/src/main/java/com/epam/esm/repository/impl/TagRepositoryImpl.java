@@ -1,6 +1,8 @@
 package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -29,8 +31,11 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
-    public Tag getById(int id) {
-        return jdbcTemplate.query(SQL_GET_BY_ID, new BeanPropertyRowMapper<>(Tag.class), id).stream().findAny().orElse(new Tag());
+    public Tag getById(int id) throws RepositoryException {
+        return jdbcTemplate.query(SQL_GET_BY_ID, new BeanPropertyRowMapper<>(Tag.class), id)
+                .stream()
+                .findAny()
+                .orElseThrow(DataNotExistRepositoryException::new);
     }
 
 

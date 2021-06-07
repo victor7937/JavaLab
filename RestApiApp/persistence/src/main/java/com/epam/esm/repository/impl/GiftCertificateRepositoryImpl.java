@@ -1,6 +1,8 @@
 package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.repository.GiftCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,10 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
     }
 
     @Override
-    public GiftCertificate getById(int id) {
-        return jdbcTemplate.query(SQL_GET_BY_ID, new GiftCertificateMapper(), id).stream().findAny().orElse(new GiftCertificate());
+    public GiftCertificate getById(int id) throws RepositoryException {
+        return jdbcTemplate.query(SQL_GET_BY_ID, new GiftCertificateMapper(), id)
+                .stream()
+                .findAny()
+                .orElseThrow(DataNotExistRepositoryException::new);
     }
 }
