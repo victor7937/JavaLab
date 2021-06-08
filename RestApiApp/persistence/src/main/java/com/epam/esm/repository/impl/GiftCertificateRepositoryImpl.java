@@ -36,4 +36,6 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
                 .findAny()
                 .orElseThrow(DataNotExistRepositoryException::new);
     }
+
+
 }

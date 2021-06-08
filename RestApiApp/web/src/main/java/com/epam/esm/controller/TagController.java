@@ -42,6 +42,13 @@ public class TagController {
         return tag;
     }
 
+    @PostMapping()
+    public Tag addNewTag(@RequestBody Tag tag) {
+        tag.setId(5);
+        System.out.println(tag);
+        return tag;
+    }
+
 
 
 }

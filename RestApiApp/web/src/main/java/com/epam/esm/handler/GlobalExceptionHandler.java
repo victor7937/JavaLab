@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 
 
-
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in GlobalExceptionHandler:";
     Logger logger = Logger.getLogger(GlobalExceptionHandler.class);
+
+    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in GlobalExceptionHandler:";
     private static final String DATABASE_ERROR_MSG = "Database Error";
     private static final String SERVER_ERROR_MSG = "Server Error";
 
