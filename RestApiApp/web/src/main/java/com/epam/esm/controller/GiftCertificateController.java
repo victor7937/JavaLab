@@ -6,10 +6,10 @@ import com.epam.esm.service.exception.NotFoundServiceException;
 import com.epam.esm.service.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -44,11 +44,12 @@ public class GiftCertificateController {
     }
 
     @PostMapping()
-    public GiftCertificate addNewCertificate(@RequestBody GiftCertificate giftCertificate){
-        giftCertificate.setId(5);
-        System.out.println(giftCertificate);
-        LocalDateTime time = giftCertificate.getCreateDate();
-        System.out.println(time.getDayOfMonth());
-        return giftCertificate;
+    public ResponseEntity<Object> addNewCertificate(@RequestBody GiftCertificate giftCertificate){
+        try {
+            giftCertificateService.add(giftCertificate);
+        } catch (ServiceException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

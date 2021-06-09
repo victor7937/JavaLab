@@ -8,10 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @ComponentScan("com.epam.esm")
 @PropertySource("classpath:db.properties")
+@EnableTransactionManagement
 public class DataBaseSpringConfig {
 
     @Autowired
@@ -26,6 +29,11 @@ public class DataBaseSpringConfig {
         ds.setPassword(env.getProperty("db.password"));
         ds.setInitialSize(Integer.parseInt(env.getProperty("db.initial.size")));
         return ds;
+    }
+
+    @Bean("transactionManager")
+    public DataSourceTransactionManager dataSourceTransactionManager(){
+        return new DataSourceTransactionManager(basicDataSource());
     }
 
     @Bean

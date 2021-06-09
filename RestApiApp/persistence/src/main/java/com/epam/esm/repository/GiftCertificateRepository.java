@@ -8,4 +8,5 @@ import java.util.List;
 public interface GiftCertificateRepository {
     List<GiftCertificate> getAll();
     GiftCertificate getById(int id) throws RepositoryException;
+    void add(GiftCertificate giftCertificate) throws RepositoryException;
 }

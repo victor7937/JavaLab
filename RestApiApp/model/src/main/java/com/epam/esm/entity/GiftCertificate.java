@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.*;
 
 public class GiftCertificate implements Serializable {
 
@@ -20,6 +20,8 @@ public class GiftCertificate implements Serializable {
     private float price;
 
     private int duration;
+
+    private List<Tag> tags = new ArrayList<>();
 
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     private LocalDateTime createDate;
@@ -38,6 +40,19 @@ public class GiftCertificate implements Serializable {
         this.createDate = createDate;
         this.lastUpdateDate = lastUpdateDate;
     }
+
+    public GiftCertificate(int id, String name, String description, float price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, List<Tag> tags) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+        this.tags = tags;
+    }
+
+
 
     public int getId() {
         return id;
@@ -91,27 +106,34 @@ public class GiftCertificate implements Serializable {
         return lastUpdateDate;
     }
 
+    public List<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
+    }
+
+    public void addTag(Tag tag){
+        this.tags.add(tag);
+    }
+
     public void setLastUpdateDate(LocalDateTime lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
     }
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GiftCertificate that = (GiftCertificate) o;
-        return id == that.id
-                && Float.compare(that.price, price) == 0
-                && duration == that.duration
-                && Objects.equals(name, that.name)
-                && Objects.equals(description, that.description)
-                && Objects.equals(createDate, that.createDate)
-                && Objects.equals(lastUpdateDate, that.lastUpdateDate);
+        return id == that.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, price, duration, createDate, lastUpdateDate);
+        return Objects.hash(id);
     }
 
     @Override
@@ -122,8 +144,9 @@ public class GiftCertificate implements Serializable {
                 ", description='" + description + '\'' +
                 ", price=" + price +
                 ", duration=" + duration +
+                ", tags=" + tags +
                 ", createDate=" + createDate +
-                ", lastUpdateTime=" + lastUpdateDate +
+                ", lastUpdateDate=" + lastUpdateDate +
                 '}';
     }
 }

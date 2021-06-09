@@ -31,7 +31,7 @@ CREATE TABLE `gift_certificate` (
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_update_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,6 +42,9 @@ LOCK TABLES `gift_certificate` WRITE;
 /*!40000 ALTER TABLE `gift_certificate` DISABLE KEYS */;
 INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (1,'lessons certificate','lessons certificate for 2 lessons',20.00,2,'2021-06-08 14:28:20','2021-06-08 15:11:52');
 INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (2,'lessons certificate','lessons certificate for 2 lessons',23.00,3,'2021-06-08 14:28:20','2021-06-08 15:05:17');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (3,'science-sertificate','lessons certificate for 2 lessons',20.00,2,'2021-06-08 21:44:22','2021-06-08 21:44:22');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (9,'match science','lessons certificate for 3 math lessons',25.00,3,'2021-06-08 23:20:04','2021-06-08 23:20:04');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (11,'physics science','lessons certificate for 3 math lessons',25.00,3,'2021-06-08 23:31:57','2021-06-08 23:31:57');
 /*!40000 ALTER TABLE `gift_certificate` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -52,9 +55,11 @@ UNLOCK TABLES;
 /*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+
 /*!50032 DROP TRIGGER IF EXISTS update_trigger */;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_trigger` BEFORE UPDATE ON `gift_certificate` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_trigger` BEFORE UPDATE ON `gift_certificate`
+    FOR EACH ROW BEGIN
     SET NEW.last_update_date=CURRENT_TIMESTAMP;
     END */;;
 DELIMITER ;
@@ -87,8 +92,13 @@ CREATE TABLE `m2m_certificate_tag` (
 LOCK TABLES `m2m_certificate_tag` WRITE;
 /*!40000 ALTER TABLE `m2m_certificate_tag` DISABLE KEYS */;
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (2,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,1);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,2);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,3);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,3);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (2,4);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,5);
 /*!40000 ALTER TABLE `m2m_certificate_tag` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -102,8 +112,9 @@ DROP TABLE IF EXISTS `tag`;
 CREATE TABLE `tag` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tag_name_uindex` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,10 +123,13 @@ CREATE TABLE `tag` (
 
 LOCK TABLES `tag` WRITE;
 /*!40000 ALTER TABLE `tag` DISABLE KEYS */;
+INSERT INTO `tag` (`id`, `name`) VALUES (7,'HR');
+INSERT INTO `tag` (`id`, `name`) VALUES (8,'IT');
+INSERT INTO `tag` (`id`, `name`) VALUES (5,'math-science');
 INSERT INTO `tag` (`id`, `name`) VALUES (1,'online');
-INSERT INTO `tag` (`id`, `name`) VALUES (2,'study');
 INSERT INTO `tag` (`id`, `name`) VALUES (3,'online study');
 INSERT INTO `tag` (`id`, `name`) VALUES (4,'perfume');
+INSERT INTO `tag` (`id`, `name`) VALUES (2,'study');
 /*!40000 ALTER TABLE `tag` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -128,4 +142,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-06-08 18:19:56
+-- Dump completed on 2021-06-09  3:52:21

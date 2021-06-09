@@ -8,4 +8,5 @@ import java.util.List;
 public interface TagService {
     List<Tag> getAll();
     Tag getById(int id) throws ServiceException;
+    void add(Tag tag) throws ServiceException;
 }

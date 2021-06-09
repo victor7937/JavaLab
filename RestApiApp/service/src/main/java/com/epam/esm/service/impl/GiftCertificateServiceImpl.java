@@ -16,8 +16,8 @@ import java.util.List;
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private final GiftCertificateRepository giftCertificateRepository;
+
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s does not exist";
-    private static final String DATABASE_ERROR_MSG = "Database error";
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository) {
@@ -37,8 +37,17 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         } catch (DataNotExistRepositoryException e) {
             throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, id), e);
         } catch (RepositoryException e){
-            throw new ServiceException(DATABASE_ERROR_MSG, e);
+            throw new ServiceException(e);
         }
         return giftCertificate;
+    }
+
+    @Override
+    public void add(GiftCertificate giftCertificate) throws ServiceException {
+        try {
+            giftCertificateRepository.add(giftCertificate);
+        } catch (RepositoryException e) {
+            throw new ServiceException(e);
+        }
     }
 }

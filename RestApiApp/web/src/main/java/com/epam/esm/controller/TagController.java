@@ -3,6 +3,7 @@ package com.epam.esm.controller;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.message.ResponseExceptionMessage;
 import com.epam.esm.service.TagService;
+import com.epam.esm.service.exception.AlreadyExistServiceException;
 import com.epam.esm.service.exception.NotFoundServiceException;
 import com.epam.esm.service.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +44,15 @@ public class TagController {
     }
 
     @PostMapping()
-    public Tag addNewTag(@RequestBody Tag tag) {
-        tag.setId(5);
-        System.out.println(tag);
-        return tag;
+    public ResponseEntity<Object> addNewTag(@RequestBody Tag tag) {
+        try {
+            tagService.add(tag);
+        } catch (AlreadyExistServiceException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        } catch (ServiceException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
