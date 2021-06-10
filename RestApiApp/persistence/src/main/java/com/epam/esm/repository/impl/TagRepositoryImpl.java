@@ -24,6 +24,8 @@ public class TagRepositoryImpl implements TagRepository {
 
     private static final String SQL_TAG_EXISTS = "SELECT EXISTS (SELECT 1 FROM tag WHERE tag.name = ?) AS tag_exists";
 
+    private static final String SQL_DELETE_TAG = "DELETE FROM tag WHERE id = ?";
+
     private static final String CHECKING_FOR_TAG_FAIL_MSG = "Checking for tag existence fail";
 
     private final JdbcTemplate jdbcTemplate;
@@ -56,6 +58,14 @@ public class TagRepositoryImpl implements TagRepository {
            throw new DataAlreadyExistRepositoryException();
         }
         jdbcTemplate.update(SQL_ADD, tag.getName());
+    }
+
+    @Override
+    public void delete(int id) throws RepositoryException {
+        int rowsAffected = jdbcTemplate.update(SQL_DELETE_TAG, id);
+        if (rowsAffected == 0){
+            throw new DataNotExistRepositoryException();
+        }
     }
 
 

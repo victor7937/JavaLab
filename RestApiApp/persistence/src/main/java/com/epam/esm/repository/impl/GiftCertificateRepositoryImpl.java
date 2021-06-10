@@ -2,6 +2,7 @@ package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.DataAlreadyExistRepositoryException;
 import com.epam.esm.exception.DataNotExistRepositoryException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.mapper.GiftCertificateMapper;
@@ -37,11 +38,15 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     private static final String SQL_TAG_EXISTS = "SELECT EXISTS (SELECT 1 FROM tag WHERE tag.name = ?) AS tag_exists";
 
+   // private static final String SQL_CERTIFICATE_EXISTS = "SELECT EXISTS (SELECT 1 FROM gift_certificate WHERE gift_certificate.id = ?) AS cert_exists";
+
     private static final String SQL_ADD_NEW_TAG = "INSERT INTO tag(name) VALUES(?)";
 
     private static final String SQL_GET_TAG_ID = "SELECT id FROM tag WHERE name = ?";
 
     private static final String SQL_ADD_TO_CERT_TAG_M2M = "INSERT INTO m2m_certificate_tag(cert_id, tag_id) VALUES(?,?)";
+
+    private static final String SQL_DELETE_CERTIFICATE = "DELETE FROM gift_certificate WHERE id = ?";
 
     private static final String ADDING_CERTIFICATE_FAIL_MSG = "Adding certificate fail";
     private static final String CHECKING_TAG_FAIL_MSG = "Checking tag for existence fail";
@@ -98,6 +103,14 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
             }
             Integer tagId = jdbcTemplate.queryForObject(SQL_GET_TAG_ID, new SingleColumnRowMapper<>(Integer.class), tag.getName());
             jdbcTemplate.update(SQL_ADD_TO_CERT_TAG_M2M, certificateId, tagId);
+        }
+    }
+
+    @Override
+    public void delete(int id) throws RepositoryException {
+        int rowsAffected = jdbcTemplate.update(SQL_DELETE_CERTIFICATE, id);
+        if (rowsAffected == 0){
+            throw new DataNotExistRepositoryException();
         }
     }
 

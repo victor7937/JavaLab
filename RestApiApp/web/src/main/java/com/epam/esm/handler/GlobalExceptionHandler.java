@@ -22,7 +22,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResponseStatusException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(ResponseStatusException e){
-        logger.error(EXCEPTION_CAUGHT_MSG, e);
         return new ResponseEntity<>(new ResponseExceptionMessage(e.getStatus(), e.getReason()), e.getStatus());
     }
 

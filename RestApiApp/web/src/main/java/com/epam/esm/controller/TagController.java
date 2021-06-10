@@ -6,6 +6,13 @@ import com.epam.esm.service.TagService;
 import com.epam.esm.service.exception.AlreadyExistServiceException;
 import com.epam.esm.service.exception.NotFoundServiceException;
 import com.epam.esm.service.exception.ServiceException;
+import com.epam.esm.util.PatchUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +26,9 @@ import java.util.List;
 public class TagController {
 
     private final TagService tagService;
+    Logger logger = Logger.getLogger(TagController.class);
+
+    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Tag Controller";
 
     @Autowired
     public TagController(TagService tagService) {
@@ -38,6 +48,7 @@ public class TagController {
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ServiceException e){
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
         return tag;
@@ -50,10 +61,42 @@ public class TagController {
         } catch (AlreadyExistServiceException e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         } catch (ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deleteTag (@PathVariable("id") int id){
+        try {
+            tagService.delete(id);
+        } catch (NotFoundServiceException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<Tag> updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
+        try {
+            Tag tag = tagService.getById(id);
+            Tag tagPatched = PatchUtil.applyPatch(patch, tag, Tag.class);
+            //tagService.updateTag(tagPatched);
+            //TODO create updating only patched fields query generator in Repository
+            return ResponseEntity.ok(tagPatched);
+        } catch (NotFoundServiceException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+
 
 
 

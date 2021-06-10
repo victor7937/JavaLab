@@ -9,4 +9,5 @@ public interface TagService {
     List<Tag> getAll();
     Tag getById(int id) throws ServiceException;
     void add(Tag tag) throws ServiceException;
+    void delete(int id) throws ServiceException;
 }

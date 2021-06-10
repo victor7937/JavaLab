@@ -17,7 +17,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private final GiftCertificateRepository giftCertificateRepository;
 
-    private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s does not exist";
+    private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository) {
@@ -46,6 +46,17 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public void add(GiftCertificate giftCertificate) throws ServiceException {
         try {
             giftCertificateRepository.add(giftCertificate);
+        } catch (RepositoryException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public void delete(int id) throws ServiceException {
+        try {
+            giftCertificateRepository.delete(id);
+        } catch (DataNotExistRepositoryException e) {
+            throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, id), e);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }

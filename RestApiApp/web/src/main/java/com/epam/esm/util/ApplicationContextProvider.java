@@ -1,4 +1,4 @@
-package com.epam.esm.config;
+package com.epam.esm.util;
 
 
 import org.springframework.beans.BeansException;

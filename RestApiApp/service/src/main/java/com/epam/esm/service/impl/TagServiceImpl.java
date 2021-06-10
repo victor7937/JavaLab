@@ -19,7 +19,7 @@ public class TagServiceImpl implements TagService {
 
     private final TagRepository tagRepository;
 
-    private static final String NOT_EXIST_MSG = "Tag id with number %s does not exist";
+    private static final String NOT_EXIST_MSG = "Tag id with number %s doesn't exist";
     private static final String ALREADY_EXIST_MSG = "Tag with name %s already exists";
 
     @Autowired
@@ -53,6 +53,17 @@ public class TagServiceImpl implements TagService {
             throw new AlreadyExistServiceException(String.format(ALREADY_EXIST_MSG, tag.getName()), e);
         } catch (RepositoryException e) {
            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public void delete(int id) throws ServiceException {
+        try {
+           tagRepository.delete(id);
+        } catch (DataNotExistRepositoryException e) {
+            throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, id), e);
+        } catch (RepositoryException e) {
+            throw new ServiceException(e);
         }
     }
 }

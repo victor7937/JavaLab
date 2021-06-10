@@ -9,4 +9,5 @@ public interface TagRepository {
     List<Tag> getAll();
     Tag getById(int id) throws RepositoryException;
     void add(Tag tag) throws RepositoryException;
+    void delete(int id) throws RepositoryException;
 }
