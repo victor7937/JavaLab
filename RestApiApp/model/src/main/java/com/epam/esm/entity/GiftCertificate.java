@@ -2,6 +2,7 @@ package com.epam.esm.entity;
 
 import com.epam.esm.util.CustomLocalDateTimeDeserializer;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -13,6 +14,7 @@ public class GiftCertificate implements Serializable {
 
     private static final long serialVersionUID = 6572422907365578328L;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int id;
 
     private String name;
@@ -25,10 +27,12 @@ public class GiftCertificate implements Serializable {
 
     private List<Tag> tags = new ArrayList<>();
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createDate;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdateDate;

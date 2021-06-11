@@ -10,4 +10,5 @@ public interface GiftCertificateRepository {
     GiftCertificate getById(int id) throws RepositoryException;
     void add(GiftCertificate giftCertificate) throws RepositoryException;
     void delete(int id) throws RepositoryException;
+    void update(GiftCertificate current, GiftCertificate modified) throws RepositoryException;
 }

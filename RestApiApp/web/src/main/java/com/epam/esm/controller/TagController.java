@@ -80,24 +80,4 @@ public class TagController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public ResponseEntity<Tag> updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
-        try {
-            Tag tag = tagService.getById(id);
-            Tag tagPatched = PatchUtil.applyPatch(patch, tag, Tag.class);
-            //tagService.updateTag(tagPatched);
-            //TODO create updating only patched fields query generator in Repository
-            return ResponseEntity.ok(tagPatched);
-        } catch (NotFoundServiceException e){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-    }
-
-
-
-
-
 }

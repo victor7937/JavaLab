@@ -79,11 +79,11 @@ public class GiftCertificateController {
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
     public ResponseEntity<GiftCertificate> updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
         try {
-            GiftCertificate giftCertificate = giftCertificateService.getById(id);
-            GiftCertificate certificatePatched = PatchUtil.applyPatch(patch, giftCertificate, GiftCertificate.class);
-            //giftCertificateService.updateCertificate(certificatePatched);
-            //TODO create updating only patched fields query generator in Repository
-            return ResponseEntity.ok(certificatePatched);
+            GiftCertificate current = giftCertificateService.getById(id);
+            GiftCertificate modified = PatchUtil.applyPatch(patch, current, GiftCertificate.class);
+            giftCertificateService.update(current, modified);
+            return new ResponseEntity<>(giftCertificateService.getById(id), HttpStatus.OK);
+
         } catch (NotFoundServiceException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (JsonPatchException | JsonProcessingException | ServiceException e) {

@@ -1,5 +1,7 @@
 package com.epam.esm.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -7,7 +9,9 @@ public class Tag implements Serializable {
 
     private static final long serialVersionUID = 8176941299187590799L;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int id;
+
     private String name;
 
     public Tag () {}

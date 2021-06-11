@@ -10,4 +10,5 @@ public interface GiftCertificateService {
     GiftCertificate getById(int id) throws ServiceException;
     void add(GiftCertificate giftCertificate) throws ServiceException;
     void delete(int id) throws ServiceException;
+    void update(GiftCertificate current, GiftCertificate modified) throws ServiceException;
 }

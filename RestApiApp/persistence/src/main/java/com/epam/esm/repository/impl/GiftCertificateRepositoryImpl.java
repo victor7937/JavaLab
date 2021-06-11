@@ -2,11 +2,12 @@ package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.DataAlreadyExistRepositoryException;
 import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.PartialUpdateException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.repository.GiftCertificateRepository;
+import com.epam.esm.util.PartialUpdateQueryCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -38,8 +38,6 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     private static final String SQL_TAG_EXISTS = "SELECT EXISTS (SELECT 1 FROM tag WHERE tag.name = ?) AS tag_exists";
 
-   // private static final String SQL_CERTIFICATE_EXISTS = "SELECT EXISTS (SELECT 1 FROM gift_certificate WHERE gift_certificate.id = ?) AS cert_exists";
-
     private static final String SQL_ADD_NEW_TAG = "INSERT INTO tag(name) VALUES(?)";
 
     private static final String SQL_GET_TAG_ID = "SELECT id FROM tag WHERE name = ?";
@@ -48,8 +46,13 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     private static final String SQL_DELETE_CERTIFICATE = "DELETE FROM gift_certificate WHERE id = ?";
 
+    private static final String UPDATE_QUERY_CONDITION = " WHERE id = ?";
+
+    private static final List<String> PARTIAL_UPDATE_FIELDS =  List.of("name", "description", "price", "duration");
+
     private static final String ADDING_CERTIFICATE_FAIL_MSG = "Adding certificate fail";
     private static final String CHECKING_TAG_FAIL_MSG = "Checking tag for existence fail";
+    private static final String CERTEFICATES_TABLE_NAME = "gift_certificate";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -111,6 +114,25 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         int rowsAffected = jdbcTemplate.update(SQL_DELETE_CERTIFICATE, id);
         if (rowsAffected == 0){
             throw new DataNotExistRepositoryException();
+        }
+    }
+
+    @Override
+    public void update(GiftCertificate current, GiftCertificate modified) throws RepositoryException {
+        try {
+            PartialUpdateQueryCreator<GiftCertificate> queryCreator = new PartialUpdateQueryCreator<>(current, modified,
+                    PARTIAL_UPDATE_FIELDS);
+            queryCreator.generatePartialUpdateData();
+
+            if (queryCreator.isUpdated()){
+                String updateQuery = queryCreator.createQuery(CERTEFICATES_TABLE_NAME) + UPDATE_QUERY_CONDITION;
+                List<Object> updatedValues = queryCreator.getValues();
+                updatedValues.add(current.getId());
+                jdbcTemplate.update(updateQuery, updatedValues.toArray());
+            }
+            //TODO Add certificate tags changing
+        } catch (PartialUpdateException e) {
+            throw new RepositoryException(e);
         }
     }
 

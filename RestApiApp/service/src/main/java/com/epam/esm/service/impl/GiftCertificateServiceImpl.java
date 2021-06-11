@@ -61,4 +61,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             throw new ServiceException(e);
         }
     }
+
+    @Override
+    public void update(GiftCertificate current, GiftCertificate modified) throws ServiceException {
+        try {
+            giftCertificateRepository.update(current, modified);
+        } catch (RepositoryException e) {
+            throw new ServiceException(e);
+        }
+    }
 }
