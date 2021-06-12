@@ -25,7 +25,7 @@ public class GiftCertificate implements Serializable {
 
     private int duration;
 
-    private List<Tag> tags = new ArrayList<>();
+    private Set<Tag> tags = new LinkedHashSet<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
@@ -49,7 +49,7 @@ public class GiftCertificate implements Serializable {
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    public GiftCertificate(int id, String name, String description, float price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, List<Tag> tags) {
+    public GiftCertificate(int id, String name, String description, float price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -114,11 +114,11 @@ public class GiftCertificate implements Serializable {
         return lastUpdateDate;
     }
 
-    public List<Tag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
 

@@ -1,7 +1,6 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Tag;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.exception.NotFoundServiceException;
 import com.epam.esm.service.exception.ServiceException;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/certificates")
@@ -32,8 +32,8 @@ public class GiftCertificateController {
     }
 
     @GetMapping()
-    public List<GiftCertificate> getAllCertificates (){
-        return giftCertificateService.getAll();
+    public List<GiftCertificate> getAllCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName){
+        return giftCertificateService.get(tagName);
     }
 
     @GetMapping("/{id}")
@@ -53,14 +53,15 @@ public class GiftCertificateController {
     }
 
     @PostMapping()
-    public ResponseEntity<Object> addNewCertificate(@RequestBody GiftCertificate giftCertificate){
+    public GiftCertificate addNewCertificate(@RequestBody GiftCertificate giftCertificate){
+        GiftCertificate certificateForResponse;
         try {
-            giftCertificateService.add(giftCertificate);
+            certificateForResponse = giftCertificateService.add(giftCertificate);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return certificateForResponse;
     }
 
     @DeleteMapping("/{id}")
@@ -77,18 +78,18 @@ public class GiftCertificateController {
     }
 
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public ResponseEntity<GiftCertificate> updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
+    public GiftCertificate updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
+        GiftCertificate certificateForResponse;
         try {
             GiftCertificate current = giftCertificateService.getById(id);
             GiftCertificate modified = PatchUtil.applyPatch(patch, current, GiftCertificate.class);
-            giftCertificateService.update(current, modified);
-            return new ResponseEntity<>(giftCertificateService.getById(id), HttpStatus.OK);
-
+            certificateForResponse = giftCertificateService.update(current, modified);
         } catch (NotFoundServiceException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+        return certificateForResponse;
     }
 }

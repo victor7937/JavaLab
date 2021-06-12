@@ -1,6 +1,9 @@
 package com.epam.esm.exception;
 
 public class PartialUpdateException extends Exception {
+
+    private static final long serialVersionUID = -6740952715508854912L;
+
     public PartialUpdateException() {
         super();
     }

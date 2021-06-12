@@ -1,5 +1,6 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.DataNotExistRepositoryException;
 import com.epam.esm.exception.RepositoryException;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
@@ -25,8 +27,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificate> getAll() {
-        return giftCertificateRepository.getAll();
+    public List<GiftCertificate> get(Optional<String> tagName) {
+        return tagName.map(t -> giftCertificateRepository.getByCriteria(new Criteria(tagName.get())))
+                .orElse(giftCertificateRepository.getAll());
     }
 
     @Override
@@ -43,12 +46,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public void add(GiftCertificate giftCertificate) throws ServiceException {
+    public GiftCertificate add(GiftCertificate giftCertificate) throws ServiceException {
+        GiftCertificate resultCertificate;
         try {
-            giftCertificateRepository.add(giftCertificate);
+           resultCertificate = giftCertificateRepository.add(giftCertificate);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
+        return resultCertificate;
     }
 
     @Override
@@ -63,11 +68,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public void update(GiftCertificate current, GiftCertificate modified) throws ServiceException {
+    public GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws ServiceException {
+        GiftCertificate resultCertificate;
         try {
-            giftCertificateRepository.update(current, modified);
+            resultCertificate = giftCertificateRepository.update(current, modified);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
+        return resultCertificate;
     }
+
 }
