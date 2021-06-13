@@ -8,12 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ARGUMENT_INVALID_MSG = "Argument in path is invalid";
     Logger logger = Logger.getLogger(GlobalExceptionHandler.class);
 
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in GlobalExceptionHandler:";
@@ -25,10 +27,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseExceptionMessage(e.getStatus(), e.getReason()), e.getStatus());
     }
 
-    @ExceptionHandler(value = NumberFormatException.class)
-    public ResponseEntity<ResponseExceptionMessage> handleException(NumberFormatException e){
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(MethodArgumentTypeMismatchException e){
         logger.error(EXCEPTION_CAUGHT_MSG, e);
-        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, ARGUMENT_INVALID_MSG), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = DataAccessException.class)

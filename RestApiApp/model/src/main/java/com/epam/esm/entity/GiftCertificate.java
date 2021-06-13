@@ -21,9 +21,9 @@ public class GiftCertificate implements Serializable {
 
     private String description;
 
-    private float price;
+    private Float price;
 
-    private int duration;
+    private Integer duration;
 
     private Set<Tag> tags = new LinkedHashSet<>();
 
@@ -39,17 +39,7 @@ public class GiftCertificate implements Serializable {
 
     public GiftCertificate(){ }
 
-    public GiftCertificate(int id, String name, String description, float price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.duration = duration;
-        this.createDate = createDate;
-        this.lastUpdateDate = lastUpdateDate;
-    }
-
-    public GiftCertificate(int id, String name, String description, float price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
+    public GiftCertificate(int id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -60,8 +50,23 @@ public class GiftCertificate implements Serializable {
         this.tags = tags;
     }
 
+    public GiftCertificate(int id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+    }
 
-
+    public GiftCertificate(String name, String description, Float price, Integer duration) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+    }
+    
     public int getId() {
         return id;
     }
@@ -86,19 +91,19 @@ public class GiftCertificate implements Serializable {
         this.description = description;
     }
 
-    public float getPrice() {
+    public Float getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(Float price) {
         this.price = price;
     }
 
-    public int getDuration() {
+    public Integer getDuration() {
         return duration;
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(Integer duration) {
         this.duration = duration;
     }
 

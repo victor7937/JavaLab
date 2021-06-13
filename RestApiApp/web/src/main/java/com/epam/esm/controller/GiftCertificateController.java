@@ -1,9 +1,10 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.exception.IncorrectDataServiceException;
 import com.epam.esm.service.GiftCertificateService;
-import com.epam.esm.service.exception.NotFoundServiceException;
-import com.epam.esm.service.exception.ServiceException;
+import com.epam.esm.exception.NotFoundServiceException;
+import com.epam.esm.exception.ServiceException;
 import com.epam.esm.util.PatchUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
@@ -44,6 +45,8 @@ public class GiftCertificateController {
             giftCertificate = giftCertificateService.getById(id);
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -57,6 +60,8 @@ public class GiftCertificateController {
         GiftCertificate certificateForResponse;
         try {
             certificateForResponse = giftCertificateService.add(giftCertificate);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -70,6 +75,8 @@ public class GiftCertificateController {
             giftCertificateService.delete(id);
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -86,6 +93,8 @@ public class GiftCertificateController {
             certificateForResponse = giftCertificateService.update(current, modified);
         } catch (NotFoundServiceException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

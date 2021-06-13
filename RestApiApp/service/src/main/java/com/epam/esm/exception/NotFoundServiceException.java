@@ -1,4 +1,4 @@
-package com.epam.esm.service.exception;
+package com.epam.esm.exception;
 
 public class NotFoundServiceException extends ServiceException{
 

@@ -1,8 +1,7 @@
 package com.epam.esm.service;
 
-import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.service.exception.ServiceException;
+import com.epam.esm.exception.ServiceException;
 
 import java.util.List;
 import java.util.Optional;
