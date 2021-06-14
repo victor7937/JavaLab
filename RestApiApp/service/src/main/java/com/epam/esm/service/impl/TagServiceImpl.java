@@ -34,7 +34,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Tag getById(int id) throws ServiceException {
+    public Tag getById(Integer id) throws ServiceException {
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
@@ -64,7 +64,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public void delete(int id) throws ServiceException {
+    public void delete(Integer id) throws ServiceException {
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }

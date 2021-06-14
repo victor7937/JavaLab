@@ -35,7 +35,7 @@ public class TagController {
     }
 
     @GetMapping("/{id}")
-    public Tag getTagById (@PathVariable("id") int id){
+    public Tag getTagById (@PathVariable("id") Integer id){
         Tag tag;
         try {
             tag = tagService.getById(id);
@@ -66,7 +66,7 @@ public class TagController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTag (@PathVariable("id") int id){
+    public ResponseEntity<Object> deleteTag (@PathVariable("id") Integer id){
         try {
             tagService.delete(id);
         } catch (NotFoundServiceException e) {

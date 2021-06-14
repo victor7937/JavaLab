@@ -24,14 +24,14 @@ DROP TABLE IF EXISTS `gift_certificate`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gift_certificate` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(70) COLLATE utf8_unicode_ci NOT NULL,
   `description` text COLLATE utf8_unicode_ci,
   `price` decimal(6,2) NOT NULL,
   `duration` int NOT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_update_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,10 +41,14 @@ CREATE TABLE `gift_certificate` (
 LOCK TABLES `gift_certificate` WRITE;
 /*!40000 ALTER TABLE `gift_certificate` DISABLE KEYS */;
 INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (1,'lessons certificate','lessons certificate for 2 lessons',20.00,2,'2021-06-08 14:28:20','2021-06-08 15:11:52');
-INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (2,'lessons certificate','lessons certificate for 2 lessons',23.00,3,'2021-06-08 14:28:20','2021-06-08 15:05:17');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (2,'Programming lessons certificate','lessons certificate for 2 lessons',25.70,3,'2021-06-08 14:28:20','2021-06-11 01:38:16');
 INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (3,'science-sertificate','lessons certificate for 2 lessons',20.00,2,'2021-06-08 21:44:22','2021-06-08 21:44:22');
-INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (9,'match science','lessons certificate for 3 math lessons',25.00,3,'2021-06-08 23:20:04','2021-06-08 23:20:04');
 INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (11,'physics science','lessons certificate for 3 math lessons',25.00,3,'2021-06-08 23:31:57','2021-06-08 23:31:57');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (15,'Java learning','Java programming learning online course',15.50,9,'2021-06-11 15:49:41','2021-06-11 15:54:42');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (16,'Java learning advanced','Java programming advanced lavel learning online course',15.00,5,'2021-06-11 15:56:22','2021-06-11 15:56:22');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (17,'Java Web Learning','Java web development advanced lavel learning online course',22.70,10,'2021-06-12 05:13:06','2021-06-12 05:24:03');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (18,'Perfume certificate','20% discount for all perfume in the Kravt shop',1.00,10,'2021-06-12 08:43:08','2021-06-12 23:58:13');
+INSERT INTO `gift_certificate` (`id`, `name`, `description`, `price`, `duration`, `create_date`, `last_update_date`) VALUES (19,'Gucci perfume certificate','15% discount for all Gucci perfume in the Kravt shop',1.00,10,'2021-06-13 01:11:38','2021-06-13 01:18:52');
 /*!40000 ALTER TABLE `gift_certificate` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -55,11 +59,9 @@ UNLOCK TABLES;
 /*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-
 /*!50032 DROP TRIGGER IF EXISTS update_trigger */;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_trigger` BEFORE UPDATE ON `gift_certificate`
-    FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_trigger` BEFORE UPDATE ON `gift_certificate` FOR EACH ROW BEGIN
     SET NEW.last_update_date=CURRENT_TIMESTAMP;
     END */;;
 DELIMITER ;
@@ -93,12 +95,25 @@ LOCK TABLES `m2m_certificate_tag` WRITE;
 /*!40000 ALTER TABLE `m2m_certificate_tag` DISABLE KEYS */;
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,1);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (2,1);
-INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (3,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (15,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (16,1);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,1);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,2);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (15,2);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (16,2);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,2);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (1,3);
-INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,3);
 INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (2,4);
-INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (9,5);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (18,4);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (15,11);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (16,11);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,11);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (16,12);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,12);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,13);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (17,14);
+INSERT INTO `m2m_certificate_tag` (`cert_id`, `tag_id`) VALUES (18,16);
 /*!40000 ALTER TABLE `m2m_certificate_tag` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -114,7 +129,7 @@ CREATE TABLE `tag` (
   `name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `tag_name_uindex` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -123,12 +138,17 @@ CREATE TABLE `tag` (
 
 LOCK TABLES `tag` WRITE;
 /*!40000 ALTER TABLE `tag` DISABLE KEYS */;
+INSERT INTO `tag` (`id`, `name`) VALUES (16,'discount');
+INSERT INTO `tag` (`id`, `name`) VALUES (17,'gucci');
+INSERT INTO `tag` (`id`, `name`) VALUES (14,'hibernate');
 INSERT INTO `tag` (`id`, `name`) VALUES (7,'HR');
 INSERT INTO `tag` (`id`, `name`) VALUES (8,'IT');
-INSERT INTO `tag` (`id`, `name`) VALUES (5,'math-science');
+INSERT INTO `tag` (`id`, `name`) VALUES (11,'java');
+INSERT INTO `tag` (`id`, `name`) VALUES (13,'javaee');
 INSERT INTO `tag` (`id`, `name`) VALUES (1,'online');
 INSERT INTO `tag` (`id`, `name`) VALUES (3,'online study');
 INSERT INTO `tag` (`id`, `name`) VALUES (4,'perfume');
+INSERT INTO `tag` (`id`, `name`) VALUES (12,'spring');
 INSERT INTO `tag` (`id`, `name`) VALUES (2,'study');
 /*!40000 ALTER TABLE `tag` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -142,4 +162,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-06-09  3:52:21
+-- Dump completed on 2021-06-14 21:11:55

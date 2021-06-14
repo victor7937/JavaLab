@@ -5,4 +5,4 @@ build
 *.iws
 log/
 target/
-Test.java
+TestSmth.java

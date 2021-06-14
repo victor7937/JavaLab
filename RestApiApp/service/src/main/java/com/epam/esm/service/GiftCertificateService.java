@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface GiftCertificateService {
     List<GiftCertificate> get (Optional<String> tagName);
-    GiftCertificate getById(int id) throws ServiceException;
+    GiftCertificate getById(Integer id) throws ServiceException;
     GiftCertificate add(GiftCertificate giftCertificate) throws ServiceException;
-    void delete(int id) throws ServiceException;
+    void delete(Integer id) throws ServiceException;
     GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws ServiceException;
 }

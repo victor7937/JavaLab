@@ -141,12 +141,18 @@ public class GiftCertificate implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GiftCertificate that = (GiftCertificate) o;
-        return id == that.id;
+        return id == that.id && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description)
+                && Objects.equals(price, that.price)
+                && Objects.equals(duration, that.duration)
+                && Objects.equals(tags, that.tags)
+                && Objects.equals(createDate, that.createDate)
+                && Objects.equals(lastUpdateDate, that.lastUpdateDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, description, price, duration, tags, createDate, lastUpdateDate);
     }
 
     @Override

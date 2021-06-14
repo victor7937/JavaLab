@@ -7,7 +7,6 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.validator.ServiceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public GiftCertificate getById(int id) throws ServiceException{
+    public GiftCertificate getById(Integer id) throws ServiceException{
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
@@ -70,7 +69,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public void delete(int id) throws ServiceException {
+    public void delete(Integer id) throws ServiceException {
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }

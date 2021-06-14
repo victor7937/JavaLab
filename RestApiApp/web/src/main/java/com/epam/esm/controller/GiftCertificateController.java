@@ -38,7 +38,7 @@ public class GiftCertificateController {
     }
 
     @GetMapping("/{id}")
-    public GiftCertificate getCertificateById (@PathVariable("id") int id){
+    public GiftCertificate getCertificateById (@PathVariable("id") Integer id){
 
         GiftCertificate giftCertificate;
         try {
@@ -70,7 +70,7 @@ public class GiftCertificateController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteCertificate (@PathVariable("id") int id){
+    public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Integer id){
         try {
             giftCertificateService.delete(id);
         } catch (NotFoundServiceException e) {
@@ -85,7 +85,7 @@ public class GiftCertificateController {
     }
 
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public GiftCertificate updateCustomer(@PathVariable int id, @RequestBody JsonPatch patch) {
+    public GiftCertificate updateCustomer(@PathVariable Integer id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
         try {
             GiftCertificate current = giftCertificateService.getById(id);

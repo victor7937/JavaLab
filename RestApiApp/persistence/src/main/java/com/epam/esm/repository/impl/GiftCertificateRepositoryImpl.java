@@ -103,8 +103,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
             return ps;
         }, keyHolder);
 
-        int certificateId = Optional.ofNullable(keyHolder.getKey())
-                .map(Number::intValue)
+        int certificateId = (Integer) Optional.ofNullable(keyHolder.getKeys().get("id"))
                 .orElseThrow(() -> new RepositoryException(ADDING_CERTIFICATE_FAIL_MSG));
 
         giftCertificate.getTags().forEach(tag -> connectTagWithCertificate(tag, certificateId));
