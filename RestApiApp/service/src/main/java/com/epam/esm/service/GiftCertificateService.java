@@ -6,10 +6,48 @@ import com.epam.esm.exception.ServiceException;
 import java.util.List;
 import java.util.Optional;
 
+
+/**
+ * Service for manipulating gift certificates data
+ */
 public interface GiftCertificateService {
+
+    /**
+     * Get all gift certificates or some of them by tag param
+     * @param tagName - tag for searching
+     * @return list of certificates by tag param or all of them
+     */
     List<GiftCertificate> get (Optional<String> tagName);
+
+    /**
+     * Get one gift certificate if id is correct
+     * @param id - id of gift certificate
+     * @return founded certificate
+     * @throws ServiceException if id is incorrect or some troubles in data source was happened
+     */
     GiftCertificate getById(Integer id) throws ServiceException;
+
+    /**
+     * Add new gift certificate
+     * @param giftCertificate - certificate that need to be added to data source
+     * @return Added gift certificate with new generated data
+     * @throws ServiceException params is incorrect or some troubles in data source was happened
+     */
     GiftCertificate add(GiftCertificate giftCertificate) throws ServiceException;
+
+    /**
+     * Delete gift certificate
+     * @param id - id of gift certificate for deleting
+     * @throws ServiceException if id is incorrect or some troubles in data source was happened
+     */
     void delete(Integer id) throws ServiceException;
+
+
+    /**
+     * @param current - gift certificate before modifying
+     * @param modified - gift certificate after modifying
+     * @return modified gift certificate with some generated data
+     * @throws ServiceException if current or modified contains incorrect data
+     */
     GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws ServiceException;
 }
