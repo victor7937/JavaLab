@@ -29,11 +29,20 @@ public class TagController {
         this.tagService = tagService;
     }
 
+    /**
+     * Get method for receiving list of all tags
+     * @return List of tags in JSON
+     */
     @GetMapping()
     public List<Tag> getAllTags() {
         return tagService.getAll();
     }
 
+    /**
+     * Get method for receiving one tag by id if it exists
+     * @param id - id of tag
+     * @return tag found in JSON
+     */
     @GetMapping("/{id}")
     public Tag getTagById (@PathVariable("id") Integer id){
         Tag tag;
@@ -50,6 +59,11 @@ public class TagController {
         return tag;
     }
 
+    /**
+     * Post method for adding a new tag
+     * @param tag - tag for adding
+     * @return tag that was added in JSON
+     */
     @PostMapping()
     public ResponseEntity<Object> addNewTag(@RequestBody Tag tag) {
         try {
@@ -65,6 +79,11 @@ public class TagController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Delete method for deleting one tag by id if it exists
+     * @param id - id of the tag
+     * @return OK response if tag was deleted
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteTag (@PathVariable("id") Integer id){
         try {

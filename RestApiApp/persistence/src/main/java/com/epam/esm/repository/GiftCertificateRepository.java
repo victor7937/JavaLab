@@ -6,11 +6,51 @@ import com.epam.esm.exception.RepositoryException;
 
 import java.util.List;
 
+/**
+ * Repository for manipulating certificate data in certificates-tag database
+ */
 public interface GiftCertificateRepository {
+    /**
+     * Get all gift certificates
+     * @return list of all certificates
+     */
     List<GiftCertificate> getAll();
+
+    /**
+     * Get gift certificates with some criteria
+     * @param criteria - searching certificates criteria
+     * @return list of some certificates which match the criteria
+     */
     List<GiftCertificate> getByCriteria(Criteria criteria);
+
+    /**
+     * Get one gift certificate by id if such id exists
+     * @param id - id of gift certificate
+     * @return certificate found
+     * @throws RepositoryException if such id exists or some troubles in database were happened
+     */
     GiftCertificate getById(int id) throws RepositoryException;
+
+    /**
+     * Add new gift certificate to database
+     * @param giftCertificate - certificate for adding to database
+     * @return Added gift certificate with new generated data
+     * @throws RepositoryException if some troubles in database were happened
+     */
     GiftCertificate add(GiftCertificate giftCertificate) throws RepositoryException;
+
+    /**
+     * Delete gift certificate from database
+     * @param id - id of gift certificate for deleting
+     * @throws RepositoryException if such id exists or some troubles in database were happened
+     */
     void delete(int id) throws RepositoryException;
+
+    /**
+     * @param current - gift certificate before modifying
+     * @param modified - gift certificate after modifying
+     * @return modified gift certificate with some generated data
+     * @throws RepositoryException if some troubles in database were happened
+     */
     GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws RepositoryException;
 }

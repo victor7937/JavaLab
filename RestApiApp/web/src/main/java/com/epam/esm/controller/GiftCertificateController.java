@@ -32,11 +32,22 @@ public class GiftCertificateController {
         this.giftCertificateService = giftCertificateService;
     }
 
+
+    /**
+     * Get method for receiving list of all gift certificates or by tag
+     * @param tagName - tag for searching, param is optional
+     * @return List of certificates in JSON
+     */
     @GetMapping()
     public List<GiftCertificate> getAllCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName){
         return giftCertificateService.get(tagName);
     }
 
+    /**
+     * Get method for receiving one certificate by id if it exists
+     * @param id - id of certificate
+     * @return certificate found in JSON
+     */
     @GetMapping("/{id}")
     public GiftCertificate getCertificateById (@PathVariable("id") Integer id){
 
@@ -55,6 +66,11 @@ public class GiftCertificateController {
 
     }
 
+    /**
+     * Post method for adding a new gift certificate
+     * @param giftCertificate - certificate for adding
+     * @return certificate that was added in JSON
+     */
     @PostMapping()
     public GiftCertificate addNewCertificate(@RequestBody GiftCertificate giftCertificate){
         GiftCertificate certificateForResponse;
@@ -69,6 +85,12 @@ public class GiftCertificateController {
         return certificateForResponse;
     }
 
+
+    /**
+     * Delete method for deleting one certificate by id if it exists
+     * @param id - id of the certificate
+     * @return OK response if certificate was deleted
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Integer id){
         try {
@@ -84,6 +106,14 @@ public class GiftCertificateController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+
+    /**
+     * Patch method for modifying existed gift certificate.
+     * Accept patch commands in JSON format RFC6901.
+     * @param id - id of certificate for modifying
+     * @param patch - RFC6901 patch commands
+     * @return modified certificate
+     */
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
     public GiftCertificate updateCustomer(@PathVariable Integer id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;

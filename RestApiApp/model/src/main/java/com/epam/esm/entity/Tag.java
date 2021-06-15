@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * A simple tag entity which has id and name
+ */
 public class Tag implements Serializable {
 
     private static final long serialVersionUID = 8176941299187590799L;

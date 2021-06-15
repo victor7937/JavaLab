@@ -10,6 +10,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
+
+/**
+ * Gift certificate entity with connected tags
+ */
 public class GiftCertificate implements Serializable {
 
     private static final long serialVersionUID = 6572422907365578328L;

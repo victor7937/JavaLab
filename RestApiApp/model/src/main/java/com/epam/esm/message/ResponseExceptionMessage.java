@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import java.io.Serializable;
 import java.util.Objects;
 
+
+/**
+ * Message that contains exception or error data
+ */
 public class ResponseExceptionMessage implements Serializable {
 
     private static final long serialVersionUID = -1513236421502919101L;

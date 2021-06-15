@@ -12,12 +12,15 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 
+/**
+ * Global controller for handling all exceptions were caught
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String ARGUMENT_INVALID_MSG = "Argument in path is invalid";
     Logger logger = Logger.getLogger(GlobalExceptionHandler.class);
 
+    private static final String ARGUMENT_INVALID_MSG = "Argument in path is invalid";
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in GlobalExceptionHandler:";
     private static final String DATABASE_ERROR_MSG = "Database Error";
     private static final String SERVER_ERROR_MSG = "Server Error";
