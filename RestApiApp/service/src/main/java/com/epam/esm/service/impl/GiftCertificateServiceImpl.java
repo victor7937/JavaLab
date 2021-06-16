@@ -6,10 +6,13 @@ import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.validator.ServiceValidator;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -31,9 +34,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificate> get(Optional<String> tagName) {
-        return tagName.map(t -> giftCertificateRepository.getByCriteria(new Criteria(tagName.get())))
-                .orElse(giftCertificateRepository.getAll());
+    public List<GiftCertificate> get(Optional<String> tagName, Optional<String> sortBy, Optional<String> sortOrder) {
+        return giftCertificateRepository.getByCriteria(Criteria.createCriteria(tagName, sortBy, sortOrder));
     }
 
     @Override

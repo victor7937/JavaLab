@@ -10,11 +10,6 @@ import java.util.List;
  * Repository for manipulating certificate data in certificates-tag database
  */
 public interface GiftCertificateRepository {
-    /**
-     * Get all gift certificates
-     * @return list of all certificates
-     */
-    List<GiftCertificate> getAll();
 
     /**
      * Get gift certificates with some criteria

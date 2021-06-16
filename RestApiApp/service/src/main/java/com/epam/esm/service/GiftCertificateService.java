@@ -13,11 +13,13 @@ import java.util.Optional;
 public interface GiftCertificateService {
 
     /**
-     * Get all gift certificates or some of them by tag param
+     * Get all gift certificates or some of them by params
      * @param tagName - tag for searching
-     * @return list of certificates by tag param or all of them
+     * @param sortBy - field name for sorting
+     * @param sortOrder - sorting order
+     * @return list of certificates found
      */
-    List<GiftCertificate> get (Optional<String> tagName);
+    List<GiftCertificate> get (Optional<String> tagName, Optional<String> sortBy, Optional<String> sortOrder);
 
     /**
      * Get one gift certificate if id is correct
