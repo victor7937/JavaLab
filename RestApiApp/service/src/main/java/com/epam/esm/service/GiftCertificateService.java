@@ -17,9 +17,10 @@ public interface GiftCertificateService {
      * @param tagName - tag for searching
      * @param sortBy - field name for sorting
      * @param sortOrder - sorting order
+     * @param namePart - part of certificate name for searching
      * @return list of certificates found
      */
-    List<GiftCertificate> get (Optional<String> tagName, Optional<String> sortBy, Optional<String> sortOrder);
+    List<GiftCertificate> get (Optional<String> tagName, Optional<String> namePart, Optional<String> sortBy, Optional<String> sortOrder);
 
     /**
      * Get one gift certificate if id is correct

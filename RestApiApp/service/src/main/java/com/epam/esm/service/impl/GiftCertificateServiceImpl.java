@@ -34,8 +34,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificate> get(Optional<String> tagName, Optional<String> sortBy, Optional<String> sortOrder) {
-        return giftCertificateRepository.getByCriteria(Criteria.createCriteria(tagName, sortBy, sortOrder));
+    public List<GiftCertificate> get(Optional<String> tagName, Optional<String> namePart, Optional<String> sortBy, Optional<String> sortOrder) {
+        return giftCertificateRepository.getByCriteria(Criteria.createCriteria(tagName, namePart, sortBy, sortOrder));
     }
 
     @Override

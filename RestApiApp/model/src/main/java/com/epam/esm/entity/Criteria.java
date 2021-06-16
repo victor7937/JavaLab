@@ -5,11 +5,13 @@ import org.apache.commons.lang3.EnumUtils;
 import java.util.Optional;
 
 /**
- * Criteria for searching by tag
+ * Criteria for searching gift certificates
  */
 public class Criteria {
 
     private String tagName;
+
+    private String namePart;
 
     private SortingField field;
 
@@ -17,17 +19,18 @@ public class Criteria {
 
     private boolean tagAdded;
 
-    private Criteria(Optional<String> tagName, Optional<Criteria.SortingField> field, Optional<SortingOrder> order) {
+    private Criteria(Optional<String> tagName, Optional<String> namePart, Optional<Criteria.SortingField> field, Optional<SortingOrder> order) {
         this.tagAdded = true;
         this.tagName = tagName.orElseGet(() -> {
             tagAdded = false;
             return null;
         });
+        this.namePart = namePart.orElse("");
         this.field = field.orElse(SortingField.ID);
         this.order = order.orElse(SortingOrder.ASC);
     }
 
-    public static Criteria createCriteria(Optional<String> tagName, Optional<String> fieldStr, Optional<String> orderStr) {
+    public static Criteria createCriteria(Optional<String> tagName, Optional<String> namePart, Optional<String> fieldStr, Optional<String> orderStr) {
         Optional<Criteria.SortingField> field;
         Optional<SortingOrder> order;
         field = fieldStr.filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
@@ -35,7 +38,7 @@ public class Criteria {
         order = orderStr.filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
                 .map(s -> SortingOrder.valueOf(s.toUpperCase()));
 
-        return new Criteria(tagName, field, order);
+        return new Criteria(tagName, namePart, field, order);
     }
 
     public boolean isTagAdded() {
@@ -44,6 +47,10 @@ public class Criteria {
 
     public String getTagName() {
         return tagName;
+    }
+
+    public String getNamePart() {
+        return namePart;
     }
 
     public SortingField getField() {

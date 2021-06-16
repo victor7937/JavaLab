@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
@@ -28,11 +29,11 @@ import java.util.function.UnaryOperator;
 @Repository
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
-    private static final String SQL_GET_ALL = "SELECT * FROM gift_certificate ORDER BY %s %s";
+    private static final String SQL_GET_ALL = "SELECT * FROM gift_certificate WHERE name LIKE ''%{0}%'' ORDER BY {1} {2}";
     private static final String SQL_GET_ALL_WITH_TAG_NAME = "SELECT g.id, g.name, g.description, g.price, g.duration," +
             " g.create_date, g.last_update_date FROM gift_certificate g" +
     " JOIN m2m_certificate_tag m2mct ON g.id = m2mct.cert_id" +
-    " JOIN tag t ON t.id = m2mct.tag_id WHERE t.name = ? ORDER BY g.%s %s";
+    " JOIN tag t ON t.id = m2mct.tag_id WHERE t.name = ? AND g.name LIKE ''%{0}%'' ORDER BY g.{1} {2}";
 
     private static final String SQL_GET_BY_ID = "SELECT * FROM gift_certificate WHERE id = ?";
 
@@ -70,11 +71,13 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @Override
     public List<GiftCertificate> getByCriteria(Criteria criteria) {
-        UnaryOperator<String> insertParams = s -> String.format(s, criteria.getField().toString().toLowerCase(),
-                criteria.getOrder().toString());
+        UnaryOperator<String> insertParams = s -> MessageFormat.format(s, criteria.getNamePart(),
+                criteria.getField().toString().toLowerCase(), criteria.getOrder().toString());
+
         List<GiftCertificate> giftCertificateList;
         if (criteria.isTagAdded()) {
-            giftCertificateList = jdbcTemplate.query(insertParams.apply(SQL_GET_ALL_WITH_TAG_NAME), new GiftCertificateMapper(), criteria.getTagName());
+            giftCertificateList = jdbcTemplate.query(insertParams.apply(SQL_GET_ALL_WITH_TAG_NAME), new GiftCertificateMapper(),
+                    criteria.getTagName());
         } else {
             giftCertificateList = jdbcTemplate.query(insertParams.apply(SQL_GET_ALL), new GiftCertificateMapper());
         }

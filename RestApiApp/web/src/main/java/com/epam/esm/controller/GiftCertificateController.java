@@ -37,13 +37,15 @@ public class GiftCertificateController {
      * @param tagName - tag for searching, param is optional
      * @param sortBy - field for sorting
      * @param sortOrder - sorting order(ASC or DESC)
+     * @param namePart - part of certificate name for searching
      * @return List of certificates in JSON
      */
     @GetMapping()
     public List<GiftCertificate> getCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName,
                                                      @RequestParam(name = "sort", required = false) Optional<String> sortBy,
-                                                     @RequestParam(name = "order", required = false) Optional<String> sortOrder){
-        return giftCertificateService.get(tagName, sortBy, sortOrder);
+                                                     @RequestParam(name = "order", required = false) Optional<String> sortOrder,
+                                                  @RequestParam(name = "part", required = false) Optional<String> namePart){
+        return giftCertificateService.get(tagName, namePart, sortBy, sortOrder);
     }
 
     /**
