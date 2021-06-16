@@ -1,6 +1,5 @@
 package com.epam.esm.config;
 
-
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
@@ -9,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+@Profile("dev")
 @Configuration
 @ComponentScan("com.epam.esm")
 @PropertySource("classpath:db.properties")

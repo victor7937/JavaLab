@@ -11,10 +11,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
-@Configuration
 @Profile("prod")
+@Configuration
 @ComponentScan("com.epam.esm")
-@PropertySource("classpath:dev.properties")
+@PropertySource("classpath:prod.properties")
 @EnableTransactionManagement
 public class DataBaseSpringConfigProd {
 
@@ -23,6 +23,7 @@ public class DataBaseSpringConfigProd {
 
     @Bean
     public DataSource dataSource(){
+        System.out.println("prod profile");
         HikariConfig config = new HikariConfig();
         config.setDriverClassName(env.getProperty("db.driver"));
         config.setJdbcUrl(env.getProperty("db.url"));

@@ -49,12 +49,12 @@ public class TagController {
         try {
             tag = tagService.getById(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
         return tag;
     }
@@ -69,12 +69,12 @@ public class TagController {
         try {
             tagService.add(tag);
         } catch (AlreadyExistServiceException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.CONFLICT), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -89,14 +89,18 @@ public class TagController {
         try {
             tagService.delete(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private int generateStatusCode(HttpStatus status){
+        return status.value() * 10 + 2;
     }
 
 }

@@ -27,7 +27,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResponseStatusException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(ResponseStatusException e){
-        return new ResponseEntity<>(new ResponseExceptionMessage(e.getStatus(), e.getReason()), e.getStatus());
+        ResponseExceptionMessage message = new ResponseExceptionMessage(e.getRawStatusCode(), e.getReason());
+        return new ResponseEntity<>(message, message.getStatus());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

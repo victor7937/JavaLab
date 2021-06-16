@@ -27,6 +27,14 @@ public class ResponseExceptionMessage implements Serializable {
         this.statusCode = status.value();
     }
 
+    public ResponseExceptionMessage(int statusCode, String message) {
+        this.message = message;
+        this.statusCode = statusCode;
+        this.status = HttpStatus.valueOf(statusCode / 10);
+    }
+
+
+
     public HttpStatus getStatus() {
         return status;
     }
