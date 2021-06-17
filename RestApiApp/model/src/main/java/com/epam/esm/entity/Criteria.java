@@ -61,8 +61,6 @@ public class Criteria {
         return order;
     }
 
-
-
     public static enum SortingField {
         NAME, CREATE_DATE, ID, PRICE, DURATION, LAST_UPDATE_DATE
     }

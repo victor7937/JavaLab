@@ -8,6 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+
+/**
+ * Util class for creating the main part of SQL update query by comparing and checking given fields
+ * of current and modified objects for not equality
+ * @param <T> - type of objects for checking
+ */
 public class PartialUpdateQueryCreator<T> {
 
     private T current;

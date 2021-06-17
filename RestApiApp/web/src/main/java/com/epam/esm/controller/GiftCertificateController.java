@@ -19,6 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller for REST operations with gift certificates
+ * Makes get, get by id, add, delete and update operations
+ */
 @RestController
 @RequestMapping("/certificates")
 public class GiftCertificateController {

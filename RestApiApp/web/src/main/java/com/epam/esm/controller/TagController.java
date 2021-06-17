@@ -15,6 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * Controller for REST operations with tags
+ * Makes get, get by id, add, delete operations
+ */
 @RestController
 @RequestMapping("/tags")
 public class TagController {
