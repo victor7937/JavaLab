@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -47,7 +46,6 @@ public class CertificateServiceTest {
     void init(){
         service = new GiftCertificateServiceImpl(repository, new CertificateValidator());
     }
-
 
     @Nested
     class GettingByIdTests {

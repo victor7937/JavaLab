@@ -106,8 +106,8 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
             ps.setInt(i.incrementAndGet(), giftCertificate.getDuration());
             return ps;
         }, keyHolder);
-
-        int certificateId = (Integer) Optional.ofNullable(keyHolder.getKeys().get("id"))
+        System.out.println(keyHolder.getKeys());
+        int certificateId = (Integer) Optional.of(keyHolder.getKeys().size() > 1 ? keyHolder.getKeys().get("id") : keyHolder.getKey().intValue())
                 .orElseThrow(() -> new RepositoryException(ADDING_CERTIFICATE_FAIL_MSG));
 
         giftCertificate.getTags().forEach(tag -> connectTagWithCertificate(tag, certificateId));
