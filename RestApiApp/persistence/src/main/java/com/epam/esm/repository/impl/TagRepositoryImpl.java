@@ -1,75 +1,81 @@
 package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.Tag;
+import com.epam.esm.entity.Tag_;
 import com.epam.esm.exception.DataAlreadyExistRepositoryException;
 import com.epam.esm.exception.DataNotExistRepositoryException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.stereotype.Repository;
 
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public class TagRepositoryImpl implements TagRepository {
+public class TagRepositoryImpl implements TagRepository{
 
-    private static final String SQL_GET_ALL = "SELECT * FROM tag";
-
-    private static final String SQL_GET_BY_ID = "SELECT * FROM tag WHERE id = ?";
-
-    private static final String SQL_ADD = "INSERT INTO tag(name) VALUES(?)";
-
-    private static final String SQL_TAG_EXISTS = "SELECT EXISTS (SELECT 1 FROM tag WHERE tag.name = ?) AS tag_exists";
-
-    private static final String SQL_DELETE_TAG = "DELETE FROM tag WHERE id = ?";
-
-    private static final String CHECKING_FOR_TAG_FAIL_MSG = "Checking for tag existence fail";
-    private static final String NOT_ADDED_MSG = "Tag wasn't added";
-
-    private final JdbcTemplate jdbcTemplate;
-
+    private static final String JPQL_GET_BY_NAME = "SELECT t from Tag t where t.name = :name";
+    private static final String JPQL_GET_ALL = "SELECT t FROM Tag t";
+    private final EntityManager entityManager;
+    
     @Autowired
-    public TagRepositoryImpl (JdbcTemplate jdbcTemplate){
-        this.jdbcTemplate = jdbcTemplate;
+    public TagRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
+    @Transactional
     public List<Tag> getAll() {
-        return jdbcTemplate.query(SQL_GET_ALL, new BeanPropertyRowMapper<>(Tag.class));
+        return entityManager.createQuery(JPQL_GET_ALL, Tag.class).getResultList();
     }
 
     @Override
-    public Tag getById(int id) throws RepositoryException {
-        return jdbcTemplate.query(SQL_GET_BY_ID, new BeanPropertyRowMapper<>(Tag.class), id)
-                .stream()
-                .findAny()
-                .orElseThrow(DataNotExistRepositoryException::new);
+    @Transactional
+    public Tag getById(Long id) throws RepositoryException {
+        return Optional.ofNullable(entityManager.find(Tag.class, id)).orElseThrow(DataNotExistRepositoryException::new);
     }
 
     @Override
+    @Transactional
+    public Tag getByName(String name) {
+        return entityManager.createQuery(JPQL_GET_BY_NAME, Tag.class).setParameter("name", name).getSingleResult();
+    }
+
+    @Override
+    @Transactional
     public void add(Tag tag) throws RepositoryException {
-        Boolean isTagExist = jdbcTemplate.queryForObject(SQL_TAG_EXISTS, new SingleColumnRowMapper<>(Boolean.class), tag.getName());
-        if (isTagExist == null) {
-            throw new RepositoryException(CHECKING_FOR_TAG_FAIL_MSG);
+        if (isTagExists(tag.getName())) {
+            throw new DataAlreadyExistRepositoryException();
         }
-        if (isTagExist) {
-           throw new DataAlreadyExistRepositoryException();
-        }
-        int rowsAffected = jdbcTemplate.update(SQL_ADD, tag.getName());
-        if (rowsAffected == 0){
-            throw new RepositoryException(NOT_ADDED_MSG);
-        }
+        entityManager.persist(tag);
     }
 
     @Override
-    public void delete(int id) throws RepositoryException {
-        int rowsAffected = jdbcTemplate.update(SQL_DELETE_TAG, id);
-        if (rowsAffected == 0){
-            throw new DataNotExistRepositoryException();
-        }
+    @Transactional
+    public void delete(Long id) throws RepositoryException {
+       Tag tag = getById(id);
+       entityManager.remove(tag);
+    }
+
+    @Override
+    public boolean isTagExists(String name) {
+        final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        final CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        final Root<Tag> tagRoot = criteriaQuery.from(Tag.class);
+
+        criteriaQuery.select(criteriaBuilder.count(tagRoot));
+        criteriaQuery.where(criteriaBuilder.equal(tagRoot.get(Tag_.name), name));
+
+        final TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
+        return typedQuery.getSingleResult() > 0;
     }
 
 

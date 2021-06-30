@@ -22,7 +22,7 @@ public interface TagService {
      * @return tag found
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    Tag getById(Integer id) throws ServiceException;
+    Tag getById(Long id) throws ServiceException;
 
     /**
      * Add a new tag if such tag is not exist in data source
@@ -37,5 +37,5 @@ public interface TagService {
      * @param id - id of the tag for deleting
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    void delete(Integer id) throws ServiceException;
+    void delete(Long id) throws ServiceException;
 }

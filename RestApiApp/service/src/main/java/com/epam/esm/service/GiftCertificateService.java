@@ -1,5 +1,6 @@
 package com.epam.esm.service;
 
+import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.ServiceException;
 
@@ -28,7 +29,7 @@ public interface GiftCertificateService {
      * @return certificate found
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    GiftCertificate getById(Integer id) throws ServiceException;
+    GiftCertificate getById(Long id) throws ServiceException;
 
     /**
      * Add new gift certificate
@@ -36,20 +37,19 @@ public interface GiftCertificateService {
      * @return Added gift certificate with new generated data
      * @throws ServiceException params is incorrect or some troubles in data source were happened
      */
-    GiftCertificate add(GiftCertificate giftCertificate) throws ServiceException;
+    GiftCertificate add(CertificateDTO giftCertificate) throws ServiceException;
 
     /**
      * Delete gift certificate
      * @param id - id of gift certificate for deleting
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    void delete(Integer id) throws ServiceException;
+    void delete(Long id) throws ServiceException;
 
     /**
-     * @param current - gift certificate before modifying
      * @param modified - gift certificate after modifying
      * @return modified gift certificate with some generated data
      * @throws ServiceException if current or modified contains incorrect data
      */
-    GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws ServiceException;
+    GiftCertificate update(CertificateDTO modified, Long id) throws ServiceException;
 }

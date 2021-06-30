@@ -5,7 +5,12 @@ import com.epam.esm.util.CustomLocalDateTimeSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -14,36 +19,60 @@ import java.util.*;
 /**
  * Gift certificate entity with connected tags
  */
+
+@Entity
+@Table(name = "gift_certificate")
+@DynamicUpdate
 public class GiftCertificate implements Serializable {
 
     private static final long serialVersionUID = 6572422907365578328L;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
     private String description;
 
+    @Column(name = "price")
     private Float price;
 
+    @Column(name = "duration")
     private Integer duration;
 
+    @ManyToMany(cascade = {
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.DETACH,
+            CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "m2m_certificate_tag",
+            joinColumns = @JoinColumn(name = "cert_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     private Set<Tag> tags = new LinkedHashSet<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    @CreationTimestamp
+    @Column(name = "create_date")
     private LocalDateTime createDate;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    @UpdateTimestamp
+    @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
     public GiftCertificate(){ }
 
-    public GiftCertificate(int id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
+    public GiftCertificate(Long id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -54,7 +83,7 @@ public class GiftCertificate implements Serializable {
         this.tags = tags;
     }
 
-    public GiftCertificate(int id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
+    public GiftCertificate(Long id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -71,11 +100,11 @@ public class GiftCertificate implements Serializable {
         this.duration = duration;
     }
     
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -135,6 +164,10 @@ public class GiftCertificate implements Serializable {
         this.tags.add(tag);
     }
 
+    public void removeTag(Tag tag){
+        this.tags.remove(tag);
+    }
+
     public void setLastUpdateDate(LocalDateTime lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
     }
@@ -145,7 +178,7 @@ public class GiftCertificate implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GiftCertificate that = (GiftCertificate) o;
-        return id == that.id && Objects.equals(name, that.name)
+        return id.equals(that.id) && Objects.equals(name, that.name)
                 && Objects.equals(description, that.description)
                 && Objects.equals(price, that.price)
                 && Objects.equals(duration, that.duration)

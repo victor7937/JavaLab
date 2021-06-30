@@ -11,19 +11,19 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TagServiceImpl implements TagService {
+public class TagServiceImpl implements TagService{
 
     private static final String INVALID_ID_MSG = "Tag id is invalid";
     private static final String INCORRECT_TAG_MSG = "Tag data is incorrect";
     private final TagRepository tagRepository;
-    private final ServiceValidator<Tag, Integer> validator;
+    private final ServiceValidator<Tag, Long> validator;
 
     private static final String NOT_EXIST_MSG = "Tag id with number %s doesn't exist";
     private static final String ALREADY_EXIST_MSG = "Tag with name %s already exists";
 
 
     @Autowired
-    public TagServiceImpl(TagRepository tagRepository, ServiceValidator<Tag, Integer> validator) {
+    public TagServiceImpl(TagRepository tagRepository, ServiceValidator<Tag, Long> validator) {
         this.tagRepository = tagRepository;
         this.validator = validator;
     }
@@ -34,7 +34,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Tag getById(Integer id) throws ServiceException {
+    public Tag getById(Long id) throws ServiceException {
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
@@ -64,7 +64,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public void delete(Integer id) throws ServiceException {
+    public void delete(Long id) throws ServiceException {
         if (!validator.isIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }

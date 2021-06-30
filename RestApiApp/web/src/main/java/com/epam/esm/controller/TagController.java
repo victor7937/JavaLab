@@ -48,7 +48,7 @@ public class TagController {
      * @return tag found in JSON
      */
     @GetMapping("/{id}")
-    public Tag getTagById (@PathVariable("id") Integer id){
+    public Tag getTagById (@PathVariable("id") Long id){
         Tag tag;
         try {
             tag = tagService.getById(id);
@@ -89,7 +89,7 @@ public class TagController {
      * @return OK response if tag was deleted
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTag (@PathVariable("id") Integer id){
+    public ResponseEntity<Object> deleteTag (@PathVariable("id") Long id){
         try {
             tagService.delete(id);
         } catch (NotFoundServiceException e) {

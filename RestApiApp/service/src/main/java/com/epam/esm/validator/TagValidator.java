@@ -4,7 +4,7 @@ import com.epam.esm.entity.Tag;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TagValidator implements ServiceValidator<Tag, Integer>{
+public class TagValidator implements ServiceValidator<Tag, Long>{
 
     @Override
     public boolean validate(Tag entity) {
@@ -12,7 +12,7 @@ public class TagValidator implements ServiceValidator<Tag, Integer>{
     }
 
     @Override
-    public boolean isIdValid(Integer id) {
+    public boolean isIdValid(Long id) {
         return id != null && id > 0;
     }
 }

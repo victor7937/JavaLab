@@ -1,15 +1,21 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.OrderDTO;
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.entity.Order;
 import com.epam.esm.exception.IncorrectDataServiceException;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
+
+import com.epam.esm.service.OrderService;
 import com.epam.esm.util.PatchUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.apache.log4j.Logger;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +34,17 @@ import java.util.Optional;
 public class GiftCertificateController {
 
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Certificate Controller";
+
     private final GiftCertificateService giftCertificateService;
+
+    private final OrderService orderService;
+
     Logger logger = Logger.getLogger(GiftCertificateController.class);
 
     @Autowired
-    public GiftCertificateController(GiftCertificateService giftCertificateService) {
+    public GiftCertificateController(GiftCertificateService giftCertificateService, OrderService orderService) {
         this.giftCertificateService = giftCertificateService;
+        this.orderService = orderService;
     }
 
     /**
@@ -58,7 +69,7 @@ public class GiftCertificateController {
      * @return certificate found in JSON
      */
     @GetMapping("/{id}")
-    public GiftCertificate getCertificateById (@PathVariable("id") Integer id){
+    public GiftCertificate getCertificateById (@PathVariable("id") Long id){
 
         GiftCertificate giftCertificate;
         try {
@@ -81,7 +92,7 @@ public class GiftCertificateController {
      * @return certificate that was added in JSON
      */
     @PostMapping()
-    public GiftCertificate addNewCertificate(@RequestBody GiftCertificate giftCertificate){
+    public GiftCertificate addNewCertificate(@RequestBody CertificateDTO giftCertificate){
         GiftCertificate certificateForResponse;
         try {
             certificateForResponse = giftCertificateService.add(giftCertificate);
@@ -101,7 +112,7 @@ public class GiftCertificateController {
      * @return OK response if certificate was deleted
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Integer id){
+    public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Long id){
         try {
             giftCertificateService.delete(id);
         } catch (NotFoundServiceException e) {
@@ -124,12 +135,13 @@ public class GiftCertificateController {
      * @return modified certificate
      */
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public GiftCertificate updateCustomer(@PathVariable Integer id, @RequestBody JsonPatch patch) {
+    public GiftCertificate updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
         try {
-            GiftCertificate current = giftCertificateService.getById(id);
-            GiftCertificate modified = PatchUtil.applyPatch(patch, current, GiftCertificate.class);
-            certificateForResponse = giftCertificateService.update(current, modified);
+            ModelMapper modelMapper = new ModelMapper();
+            CertificateDTO current = modelMapper.map(giftCertificateService.getById(id), CertificateDTO.class);
+            CertificateDTO modified = PatchUtil.applyPatch(patch, current, CertificateDTO.class);
+            certificateForResponse = giftCertificateService.update(modified, id);
         } catch (NotFoundServiceException e){
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -140,6 +152,21 @@ public class GiftCertificateController {
         }
         return certificateForResponse;
     }
+
+    @PostMapping("/buy")
+    public Order buyCertificate(@RequestBody OrderDTO orderDTO){
+        Order orderForResponse;
+        try {
+            orderForResponse = orderService.makeOrder(orderDTO);
+        } catch (NotFoundServiceException e){
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+        }
+        return orderForResponse;
+    }
+
 
     private int generateStatusCode(HttpStatus status){
         return status.value() * 10 + 1;

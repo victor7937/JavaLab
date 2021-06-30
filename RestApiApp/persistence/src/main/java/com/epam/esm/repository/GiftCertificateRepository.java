@@ -1,5 +1,6 @@
 package com.epam.esm.repository;
 
+import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.RepositoryException;
@@ -24,7 +25,7 @@ public interface GiftCertificateRepository {
      * @return certificate found
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    GiftCertificate getById(int id) throws RepositoryException;
+    GiftCertificate getById(Long id) throws RepositoryException;
 
     /**
      * Add new gift certificate to database
@@ -32,20 +33,19 @@ public interface GiftCertificateRepository {
      * @return Added gift certificate with new generated data
      * @throws RepositoryException if some troubles in database were happened
      */
-    GiftCertificate add(GiftCertificate giftCertificate) throws RepositoryException;
+    GiftCertificate add(CertificateDTO giftCertificate) throws RepositoryException;
 
     /**
      * Delete gift certificate from database
      * @param id - id of gift certificate for deleting
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    void delete(int id) throws RepositoryException;
+    void delete(Long id) throws RepositoryException;
 
     /**
-     * @param current - gift certificate before modifying
      * @param modified - gift certificate after modifying
      * @return modified gift certificate with some generated data
      * @throws RepositoryException if some troubles in database were happened
      */
-    GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws RepositoryException;
+    GiftCertificate update(CertificateDTO modified, Long id) throws RepositoryException;
 }
