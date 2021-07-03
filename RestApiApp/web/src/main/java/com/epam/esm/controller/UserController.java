@@ -4,11 +4,19 @@ import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
 import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
+import com.epam.esm.hateoas.assembler.OrderAssembler;
+import com.epam.esm.hateoas.assembler.UserAssembler;
+import com.epam.esm.hateoas.model.OrderModel;
+import com.epam.esm.hateoas.model.UserModel;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+
+
 import org.springframework.http.HttpStatus;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,24 +31,28 @@ public class UserController {
 
     private final UserService userService;
     private final OrderService orderService;
+    private final UserAssembler userAssembler;
+    private final OrderAssembler orderAssembler;
 
     Logger logger = Logger.getLogger(UserController.class);
 
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in User Controller";
 
     @Autowired
-    public UserController(UserService userService, OrderService orderService) {
+    public UserController(UserService userService, OrderService orderService, UserAssembler userAssembler, OrderAssembler orderAssembler) {
         this.userService = userService;
         this.orderService = orderService;
+        this.userAssembler = userAssembler;
+        this.orderAssembler = orderAssembler;
     }
 
-    @GetMapping()
-    public List<User> getAllUsers(){
-        return userService.getAll();
+    @GetMapping(produces = { "application/prs.hal-forms+json" })
+    public CollectionModel<UserModel> getAllUsers(){
+        return userAssembler.toCollectionModel(userService.getAll());
     }
 
-    @GetMapping("/{email}")
-    public User getByEmail(@PathVariable("email") String email){
+    @GetMapping(value = "/{email}", produces = { "application/prs.hal-forms+json" })
+    public UserModel getByEmail(@PathVariable("email") String email){
         User user;
         try {
             user = userService.getByEmail(email);
@@ -50,12 +62,13 @@ public class UserController {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return user;
+        return userAssembler.toModel(user);
     }
 
-    @GetMapping("/{email}/orders")
-    public List<Order> getOrdersOfUser(@PathVariable("email") String email){
+    @GetMapping(value = "/{email}/orders", produces = { "application/prs.hal-forms+json" })
+    public CollectionModel<OrderModel> getOrdersOfUser(@PathVariable("email") String email){
         List<Order> orders;
+
         try {
             orders = orderService.getOrders(email);
         } catch (NotFoundServiceException e) {
@@ -63,11 +76,12 @@ public class UserController {
         } catch (ServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return orders;
+
+        return orderAssembler.toCollectionModel(orders);
     }
 
-    @GetMapping("/{email}/orders/{orderId}")
-    public Order getOrderOfUser(@PathVariable("email") String email, @PathVariable("orderId") Long orderId){
+    @GetMapping(value = "/{email}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
+    public OrderModel getOrderOfUser(@PathVariable("email") String email, @PathVariable("orderId") Long orderId){
         Order order;
         try {
            order = orderService.getOrder(email, orderId);
@@ -76,7 +90,7 @@ public class UserController {
         } catch (ServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return order;
+        return orderAssembler.toModel(order);
     }
 
     private int generateStatusCode(HttpStatus status){

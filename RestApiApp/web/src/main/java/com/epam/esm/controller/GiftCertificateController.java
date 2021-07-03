@@ -5,6 +5,8 @@ import com.epam.esm.dto.OrderDTO;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.exception.IncorrectDataServiceException;
+import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
+import com.epam.esm.hateoas.model.GiftCertificateModel;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
@@ -17,13 +19,20 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.hateoas.IanaLinkRelations;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * Controller for REST operations with gift certificates
@@ -37,13 +46,18 @@ public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
 
+    private final GiftCertificateAssembler certificateAssembler;
+
     private final OrderService orderService;
 
     Logger logger = Logger.getLogger(GiftCertificateController.class);
 
     @Autowired
-    public GiftCertificateController(GiftCertificateService giftCertificateService, OrderService orderService) {
+    public GiftCertificateController(GiftCertificateService giftCertificateService,
+                                     GiftCertificateAssembler certificateAssembler,
+                                     OrderService orderService) {
         this.giftCertificateService = giftCertificateService;
+        this.certificateAssembler = certificateAssembler;
         this.orderService = orderService;
     }
 
@@ -55,12 +69,12 @@ public class GiftCertificateController {
      * @param namePart - part of certificate name for searching
      * @return List of certificates in JSON
      */
-    @GetMapping()
-    public List<GiftCertificate> getCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName,
-                                                     @RequestParam(name = "sort", required = false) Optional<String> sortBy,
-                                                     @RequestParam(name = "order", required = false) Optional<String> sortOrder,
-                                                  @RequestParam(name = "part", required = false) Optional<String> namePart){
-        return giftCertificateService.get(tagName, namePart, sortBy, sortOrder);
+    @GetMapping(produces = { "application/prs.hal-forms+json" })
+    public CollectionModel<GiftCertificateModel> getCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName,
+                                                             @RequestParam(name = "sort", required = false) Optional<String> sortBy,
+                                                             @RequestParam(name = "order", required = false) Optional<String> sortOrder,
+                                                             @RequestParam(name = "part", required = false) Optional<String> namePart){
+        return certificateAssembler.toCollectionModel(giftCertificateService.get(tagName, namePart, sortBy, sortOrder));
     }
 
     /**
@@ -68,10 +82,11 @@ public class GiftCertificateController {
      * @param id - id of certificate
      * @return certificate found in JSON
      */
-    @GetMapping("/{id}")
-    public GiftCertificate getCertificateById (@PathVariable("id") Long id){
+    @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
+    public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
 
         GiftCertificate giftCertificate;
+
         try {
             giftCertificate = giftCertificateService.getById(id);
         } catch (NotFoundServiceException e) {
@@ -82,8 +97,9 @@ public class GiftCertificateController {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return giftCertificate;
-
+        GiftCertificateModel certificateModel = certificateAssembler.toModel(giftCertificate);
+        addAffordances(certificateModel);
+        return certificateModel;
     }
 
     /**
@@ -167,6 +183,13 @@ public class GiftCertificateController {
         return orderForResponse;
     }
 
+    private void addAffordances(GiftCertificateModel model){
+        model.mapLink(IanaLinkRelations.SELF, l -> l
+                .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
+                .andAffordance(afford(methodOn(GiftCertificateController.class).updateCustomer(model.getId(),null)))
+                .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
+                .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+    }
 
     private int generateStatusCode(HttpStatus status){
         return status.value() * 10 + 1;

@@ -1,6 +1,7 @@
 package com.epam.esm.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,7 +11,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "user")
-public class User implements Serializable {
+public class User implements Serializable  {
 
     private static final long serialVersionUID = -7299750937016032393L;
 
@@ -27,8 +28,7 @@ public class User implements Serializable {
     @JsonIgnore
     private List<Order> orders = new ArrayList<>();
 
-    public User() {
-    }
+    public User() {}
 
     public User(String email, String name, String surname) {
         this.email = email;

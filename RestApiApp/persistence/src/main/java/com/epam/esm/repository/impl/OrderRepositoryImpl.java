@@ -2,6 +2,7 @@ package com.epam.esm.repository.impl;
 
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
+import com.epam.esm.exception.DataNotExistRepositoryException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
@@ -36,13 +38,16 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     @Transactional
     public List<Order> getOrders(String userEmail) throws RepositoryException {
-        return userRepository.getByEmail(userEmail).getOrders();
+        List<Order> orders = userRepository.getByEmail(userEmail).getOrders();
+        //orders.forEach(entityManager::detach);
+        return orders;
     }
 
     @Override
     @Transactional
     public Order getOrder(String userEmail, Long orderId) throws RepositoryException {
         return entityManager.createQuery(JPQL_GET_USERS_ORDER, Order.class)
-                .setParameter("id", orderId).setParameter("email", userEmail).getSingleResult();
+                .setParameter("id", orderId).setParameter("email", userEmail).getResultStream()
+                .findAny().orElseThrow(DataNotExistRepositoryException::new);
     }
 }

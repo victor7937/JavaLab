@@ -28,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
     private static final String USER_NOT_EXIST_MSG = "User with email  %s doesn't exist";
     private static final String CERTIFICATE_NOT_EXIST_MSG = "Certificate with id %s doesn't exist";
-
+    private static final String INCORRECT_ORDER_MSG = "Incorrect order id or users email";
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, GiftCertificateRepository certificateRepository) {
@@ -81,7 +81,9 @@ public class OrderServiceImpl implements OrderService {
     public Order getOrder(String userEmail, Long orderId) throws ServiceException {
         Order order;
         try {
-             order = orderRepository.getOrder(userEmail, orderId);
+            order = orderRepository.getOrder(userEmail, orderId);
+        } catch (DataNotExistRepositoryException e) {
+            throw new NotFoundServiceException(INCORRECT_ORDER_MSG, e);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }

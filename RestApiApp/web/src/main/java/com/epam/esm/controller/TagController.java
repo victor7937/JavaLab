@@ -8,10 +8,12 @@ import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import java.util.List;
 
@@ -37,9 +39,12 @@ public class TagController {
      * Get method for receiving list of all tags
      * @return List of tags in JSON
      */
-    @GetMapping()
-    public List<Tag> getAllTags() {
-        return tagService.getAll();
+    @GetMapping(produces = { "application/prs.hal-forms+json" })
+    public PagedModel<Tag> getAllTags() {
+        List<Tag> tags = tagService.getAll();
+        PagedModel<Tag> pages = PagedModel.of(tags, new PagedModel.PageMetadata(tags.size(),1,tags.size(),1));
+        pages.add(linkTo(methodOn(TagController.class).getAllTags()).withSelfRel());
+        return pages;
     }
 
     /**

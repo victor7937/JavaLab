@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,8 +46,7 @@ public class Order implements Serializable {
     @JoinColumn(name = "users_email")
     private User user;
 
-    public Order() {
-    }
+    public Order() {}
 
     public Order(Long id, LocalDateTime timeOfPurchase, Float cost) {
         this.id = id;

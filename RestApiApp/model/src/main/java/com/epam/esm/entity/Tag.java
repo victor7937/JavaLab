@@ -36,7 +36,6 @@ public class Tag implements Serializable {
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "cert_id")
     )
-//    @ManyToMany(mappedBy = "tags")
     @JsonIgnore
     private List<GiftCertificate> certificates = new ArrayList<>();
 

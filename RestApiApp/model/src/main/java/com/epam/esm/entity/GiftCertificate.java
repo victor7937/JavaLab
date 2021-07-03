@@ -2,6 +2,7 @@ package com.epam.esm.entity;
 
 import com.epam.esm.util.CustomLocalDateTimeDeserializer;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -48,7 +50,7 @@ public class GiftCertificate implements Serializable {
             CascadeType.MERGE,
             CascadeType.PERSIST,
             CascadeType.DETACH,
-            CascadeType.REFRESH}, fetch = FetchType.EAGER)
+            CascadeType.REFRESH},fetch = FetchType.LAZY)
     @JoinTable(
             name = "m2m_certificate_tag",
             joinColumns = @JoinColumn(name = "cert_id"),
@@ -70,7 +72,9 @@ public class GiftCertificate implements Serializable {
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
-    public GiftCertificate(){ }
+    public GiftCertificate(){
+
+    }
 
     public GiftCertificate(Long id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, Set<Tag> tags) {
         this.id = id;
