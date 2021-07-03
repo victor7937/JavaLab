@@ -1,6 +1,7 @@
 package com.epam.esm.repository;
 
 import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.RepositoryException;
@@ -17,7 +18,7 @@ public interface GiftCertificateRepository {
      * @param criteria - searching certificates criteria
      * @return list of some certificates which match the criteria
      */
-    List<GiftCertificate> getByCriteria(Criteria criteria);
+    PagedDTO<GiftCertificate> getByCriteria(Criteria criteria, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get one gift certificate by id if such id exists

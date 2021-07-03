@@ -4,15 +4,16 @@ import com.epam.esm.exception.PartialUpdateException;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 
 /**
- * Util class for creating the main part of SQL update query by comparing and checking given fields
- * of current and modified objects for not equality
- * @param <T> - type of objects for checking
+ * Util class for comparing given fields of current and modified objects
+ * for not equality and setting only changed fields of current object
+ * @param <T> class of current object
+ * @param <K> class of modified object
+ *
  */
 public class PartialUpdater<T,K> {
 

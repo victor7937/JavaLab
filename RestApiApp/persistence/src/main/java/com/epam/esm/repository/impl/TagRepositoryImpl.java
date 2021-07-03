@@ -46,7 +46,8 @@ public class TagRepositoryImpl implements TagRepository{
     @Override
     @Transactional
     public Tag getByName(String name) {
-        return entityManager.createQuery(JPQL_GET_BY_NAME, Tag.class).setParameter("name", name).getSingleResult();
+        return entityManager.createQuery(JPQL_GET_BY_NAME, Tag.class).setParameter("name", name).getResultStream()
+                .findAny().orElse(null);
     }
 
     @Override
@@ -67,14 +68,14 @@ public class TagRepositoryImpl implements TagRepository{
 
     @Override
     public boolean isTagExists(String name) {
-        final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        final CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
-        final Root<Tag> tagRoot = criteriaQuery.from(Tag.class);
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<Tag> tagRoot = criteriaQuery.from(Tag.class);
 
         criteriaQuery.select(criteriaBuilder.count(tagRoot));
         criteriaQuery.where(criteriaBuilder.equal(tagRoot.get(Tag_.name), name));
 
-        final TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
+        TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
         return typedQuery.getSingleResult() > 0;
     }
 

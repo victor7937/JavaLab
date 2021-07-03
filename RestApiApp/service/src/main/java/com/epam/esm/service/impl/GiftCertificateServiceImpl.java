@@ -1,6 +1,7 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.*;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
@@ -25,7 +27,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
-
+    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO, Long> validator) {
         this.giftCertificateRepository = giftCertificateRepository;
@@ -33,8 +35,16 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificate> get(Optional<String> tagName, Optional<String> namePart, Optional<String> sortBy, Optional<String> sortOrder) {
-        return giftCertificateRepository.getByCriteria(Criteria.createCriteria(tagName, namePart, sortBy, sortOrder));
+    public PagedDTO<GiftCertificate> get(Criteria criteria, int pageSize, int pageNumber) throws ServiceException {
+        PagedDTO<GiftCertificate> pagedDTO;
+        try {
+            pagedDTO = giftCertificateRepository.getByCriteria(criteria, pageSize, pageNumber);
+        } catch (IncorrectPageRepositoryException e) {
+            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+        } catch (RepositoryException e){
+            throw new ServiceException(e);
+        }
+        return pagedDTO;
     }
 
     @Override

@@ -2,11 +2,16 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.OrderDTO;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.Criteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.exception.IncorrectDataServiceException;
+import com.epam.esm.exception.IncorrectPageServiceException;
 import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
+import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.model.GiftCertificateModel;
+import com.epam.esm.hateoas.model.OrderModel;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
@@ -20,16 +25,16 @@ import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.hateoas.IanaLinkRelations;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -48,6 +53,8 @@ public class GiftCertificateController {
 
     private final GiftCertificateAssembler certificateAssembler;
 
+    private final OrderAssembler orderAssembler;
+
     private final OrderService orderService;
 
     Logger logger = Logger.getLogger(GiftCertificateController.class);
@@ -55,26 +62,40 @@ public class GiftCertificateController {
     @Autowired
     public GiftCertificateController(GiftCertificateService giftCertificateService,
                                      GiftCertificateAssembler certificateAssembler,
-                                     OrderService orderService) {
+                                     OrderAssembler orderAssembler, OrderService orderService) {
         this.giftCertificateService = giftCertificateService;
         this.certificateAssembler = certificateAssembler;
+        this.orderAssembler = orderAssembler;
         this.orderService = orderService;
     }
 
     /**
      * Get method for receiving list of certificates by some criteria
-     * @param tagName - tag for searching, param is optional
+     * @param tagNames - tags for searching, param is optional
      * @param sortBy - field for sorting
      * @param sortOrder - sorting order(ASC or DESC)
      * @param namePart - part of certificate name for searching
      * @return List of certificates in JSON
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    public CollectionModel<GiftCertificateModel> getCertificates (@RequestParam(name = "tag", required = false) Optional<String> tagName,
+    public PagedModel<GiftCertificateModel> getCertificates (@RequestParam(name = "tags", required = false) Optional<Set<String>> tagNames,
                                                              @RequestParam(name = "sort", required = false) Optional<String> sortBy,
                                                              @RequestParam(name = "order", required = false) Optional<String> sortOrder,
-                                                             @RequestParam(name = "part", required = false) Optional<String> namePart){
-        return certificateAssembler.toCollectionModel(giftCertificateService.get(tagName, namePart, sortBy, sortOrder));
+                                                             @RequestParam(name = "part", required = false) Optional<String> namePart,
+                                                                 @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
+
+        PagedDTO<GiftCertificate> pagedDTO;
+        try {
+             pagedDTO = giftCertificateService.get(Criteria.createCriteria(tagNames, namePart, sortBy, sortOrder), size, page);
+        } catch (IncorrectPageServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (ServiceException e){
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+        }
+
+        return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
     /**
@@ -84,9 +105,7 @@ public class GiftCertificateController {
      */
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
     public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
-
         GiftCertificate giftCertificate;
-
         try {
             giftCertificate = giftCertificateService.getById(id);
         } catch (NotFoundServiceException e) {
@@ -107,8 +126,8 @@ public class GiftCertificateController {
      * @param giftCertificate - certificate for adding
      * @return certificate that was added in JSON
      */
-    @PostMapping()
-    public GiftCertificate addNewCertificate(@RequestBody CertificateDTO giftCertificate){
+    @PostMapping( produces = { "application/prs.hal-forms+json" })
+    public GiftCertificateModel addNewCertificate(@RequestBody CertificateDTO giftCertificate){
         GiftCertificate certificateForResponse;
         try {
             certificateForResponse = giftCertificateService.add(giftCertificate);
@@ -118,7 +137,7 @@ public class GiftCertificateController {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return certificateForResponse;
+        return certificateAssembler.toModel(certificateForResponse);
     }
 
 
@@ -150,8 +169,8 @@ public class GiftCertificateController {
      * @param patch - RFC6901 patch commands
      * @return modified certificate
      */
-    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-    public GiftCertificate updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
+    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json",  produces = { "application/prs.hal-forms+json" })
+    public GiftCertificateModel updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
         try {
             ModelMapper modelMapper = new ModelMapper();
@@ -166,11 +185,11 @@ public class GiftCertificateController {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return certificateForResponse;
+        return certificateAssembler.toModel(certificateForResponse);
     }
 
-    @PostMapping("/buy")
-    public Order buyCertificate(@RequestBody OrderDTO orderDTO){
+    @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
+    public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
         Order orderForResponse;
         try {
             orderForResponse = orderService.makeOrder(orderDTO);
@@ -180,7 +199,7 @@ public class GiftCertificateController {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
-        return orderForResponse;
+        return orderAssembler.toModel(orderForResponse);
     }
 
     private void addAffordances(GiftCertificateModel model){

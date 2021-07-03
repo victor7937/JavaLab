@@ -1,23 +1,26 @@
 package com.epam.esm.repository.impl;
 
 import com.epam.esm.dto.CertificateDTO;
-import com.epam.esm.entity.Criteria;
-import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.GiftCertificate_;
-import com.epam.esm.entity.Tag;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.*;
 import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.IncorrectPageRepositoryException;
 import com.epam.esm.exception.PartialUpdateException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.repository.GiftCertificateRepository;
 
 import com.epam.esm.repository.TagRepository;
+import com.epam.esm.util.CriteriaUtil;
 import com.epam.esm.util.PartialUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 
 import java.util.*;
 
@@ -39,8 +42,53 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @Override
     @Transactional
-    public List<GiftCertificate> getByCriteria(Criteria criteria) {
-        return entityManager.createQuery(JPQL_GET_ALL, GiftCertificate.class).getResultList();
+    public PagedDTO<GiftCertificate> getByCriteria(Criteria criteria, int pageSize, int pageNumber) throws RepositoryException {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+
+        Root<GiftCertificate> gcRoot = criteriaQuery.from(GiftCertificate.class);
+        Predicate conditions = criteriaBuilder.conjunction();
+        criteriaQuery.select(gcRoot).distinct(true);
+
+        if (criteria.isTagAdded()){
+            Expression<Set<Tag>> tags = gcRoot.get(GiftCertificate_.tags);
+            for (String name : criteria.getTagNames()){
+                Tag tag = tagRepository.getByName(name);
+                if (tag == null){
+                    return new PagedDTO<>();
+                }
+                Predicate p = criteriaBuilder.isMember(tag, tags);
+                conditions = criteriaBuilder.and(conditions, p);
+            }
+        }
+        if (!criteria.getNamePart().isBlank()){
+            Predicate p = criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%" + criteria.getNamePart() + "%");
+            conditions = criteriaBuilder.and(conditions, p);
+        }
+
+        Long count = CriteriaUtil.getResultsCount(entityManager, conditions, GiftCertificate.class);
+        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(pageSize, pageNumber, count);
+        if (metadata.getTotalPages() < metadata.getNumber()) {
+            throw new IncorrectPageRepositoryException();
+        }
+
+        criteriaQuery.where(conditions);
+
+        Path<?> sortPath = gcRoot.get(criteria.getField().attribute);
+        if (criteria.getOrder() == Criteria.SortingOrder.DESC) {
+            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
+        } else {
+            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
+        }
+
+        TypedQuery<GiftCertificate> typedQuery = entityManager.createQuery(criteriaQuery);
+
+        System.out.println(metadata.getTotalPages());
+        List<GiftCertificate> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+
+       return new PagedDTO<>(resultList, metadata);
     }
 
     @Override
@@ -90,5 +138,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
         return current;
     }
+
+
 
 }

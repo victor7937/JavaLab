@@ -2,14 +2,17 @@ package com.epam.esm.entity;
 
 import org.apache.commons.lang3.EnumUtils;
 
+import javax.persistence.metamodel.SingularAttribute;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Criteria for searching gift certificates
  */
 public class Criteria {
 
-    private String tagName;
+    private Set<String> tagNames;
 
     private String namePart;
 
@@ -19,9 +22,9 @@ public class Criteria {
 
     private boolean tagAdded;
 
-    private Criteria(Optional<String> tagName, Optional<String> namePart, Optional<Criteria.SortingField> field, Optional<SortingOrder> order) {
+    private Criteria(Optional<Set<String>> tagNames, Optional<String> namePart, Optional<Criteria.SortingField> field, Optional<SortingOrder> order) {
         this.tagAdded = true;
-        this.tagName = tagName.orElseGet(() -> {
+        this.tagNames = tagNames.orElseGet(() -> {
             tagAdded = false;
             return null;
         });
@@ -30,7 +33,7 @@ public class Criteria {
         this.order = order.orElse(SortingOrder.ASC);
     }
 
-    public static Criteria createCriteria(Optional<String> tagName, Optional<String> namePart, Optional<String> fieldStr, Optional<String> orderStr) {
+    public static Criteria createCriteria(Optional<Set<String>> tagNames, Optional<String> namePart, Optional<String> fieldStr, Optional<String> orderStr) {
         Optional<Criteria.SortingField> field;
         Optional<SortingOrder> order;
         field = fieldStr.filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
@@ -38,15 +41,15 @@ public class Criteria {
         order = orderStr.filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
                 .map(s -> SortingOrder.valueOf(s.toUpperCase()));
 
-        return new Criteria(tagName, namePart, field, order);
+        return new Criteria(tagNames, namePart, field, order);
     }
 
     public boolean isTagAdded() {
         return tagAdded;
     }
 
-    public String getTagName() {
-        return tagName;
+    public Set<String> getTagNames() {
+        return tagNames;
     }
 
     public String getNamePart() {
@@ -61,20 +64,29 @@ public class Criteria {
         return order;
     }
 
-    public static enum SortingField {
-        NAME, CREATE_DATE, ID, PRICE, DURATION, LAST_UPDATE_DATE
+    public enum SortingField {
+
+        NAME(GiftCertificate_.name), CREATE_DATE(GiftCertificate_.createDate), ID(GiftCertificate_.id), PRICE(GiftCertificate_.price),
+        DURATION(GiftCertificate_.duration), LAST_UPDATE_DATE(GiftCertificate_.lastUpdateDate);
+
+        public final SingularAttribute<GiftCertificate, ?> attribute;
+
+        SortingField(SingularAttribute<GiftCertificate, ?> attribute) {
+            this.attribute = attribute;
+        }
     }
 
-    public static enum SortingOrder {
+    public enum SortingOrder {
         ASC, DESC
     }
 
     @Override
     public String toString() {
         return "Criteria{" +
-                "tagName='" + tagName + '\'' +
+                "tagNames=" + tagNames +
+                ", namePart='" + namePart + '\'' +
                 ", field=" + field +
-                ", type=" + order +
+                ", order=" + order +
                 ", tagAdded=" + tagAdded +
                 '}';
     }
