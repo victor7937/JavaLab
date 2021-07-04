@@ -1,6 +1,7 @@
 package com.epam.esm.repository.impl;
 
 import com.epam.esm.criteria.CertificateCriteria;
+import com.epam.esm.criteria.SortingOrder;
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.*;
@@ -28,8 +29,6 @@ import java.util.*;
 
 @Repository
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
-
-    private static final String JPQL_GET_ALL = "SELECT g from GiftCertificate g";
 
     private final EntityManager entityManager;
 
@@ -76,7 +75,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         criteriaQuery.where(conditions);
 
         Path<?> sortPath = gcRoot.get(certificateCriteria.getField().attribute);
-        if (certificateCriteria.getOrder() == CertificateCriteria.SortingOrder.DESC) {
+        if (certificateCriteria.getOrder() == SortingOrder.DESC) {
             criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
         } else {
             criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));

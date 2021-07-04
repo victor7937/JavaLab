@@ -17,6 +17,7 @@ import java.util.Set;
  * Criteria for searching gift certificates
  */
 public class CertificateCriteria {
+
     private static final String MIN_DATE_TIME = "2021-06-01T00:00:00";
 
     private Set<String> tagNames;
@@ -135,7 +136,6 @@ public class CertificateCriteria {
     }
 
     public enum SortingField {
-
         NAME(GiftCertificate_.name), CREATE_DATE(GiftCertificate_.createDate), ID(GiftCertificate_.id), PRICE(GiftCertificate_.price),
         DURATION(GiftCertificate_.duration), LAST_UPDATE_DATE(GiftCertificate_.lastUpdateDate);
 
@@ -144,10 +144,6 @@ public class CertificateCriteria {
         SortingField(SingularAttribute<GiftCertificate, ?> attribute) {
             this.attribute = attribute;
         }
-    }
-
-    public enum SortingOrder {
-        ASC, DESC
     }
 
     public enum RequestParams{

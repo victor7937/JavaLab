@@ -38,12 +38,6 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         return model;
     }
 
-    @Override
-    public CollectionModel<UserModel> toCollectionModel(Iterable<? extends User> entities) {
-       CollectionModel<UserModel> models = super.toCollectionModel(entities);
-       models.add(linkTo(methodOn(UserController.class).getAllUsers()).withSelfRel());
-       return models;
-    }
 
     public PagedModel<UserModel> toPagedModel(Collection<? extends User> entities, PagedModel.PageMetadata metadata) {
         return PagedModel.of(entities.stream().map(this::toModel).collect(Collectors.toList()), metadata);

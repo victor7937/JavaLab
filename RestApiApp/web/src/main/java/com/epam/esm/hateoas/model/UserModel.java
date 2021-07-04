@@ -1,8 +1,5 @@
 package com.epam.esm.hateoas.model;
 
-import com.epam.esm.entity.Order;
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 

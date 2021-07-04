@@ -1,7 +1,13 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.criteria.CertificateCriteria;
+import com.epam.esm.criteria.UserCriteria;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
+import com.epam.esm.exception.IncorrectDataServiceException;
+import com.epam.esm.exception.IncorrectPageServiceException;
 import com.epam.esm.exception.NotFoundServiceException;
 import com.epam.esm.exception.ServiceException;
 import com.epam.esm.hateoas.assembler.OrderAssembler;
@@ -15,15 +21,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 
 
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -47,8 +52,24 @@ public class UserController {
     }
 
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    public CollectionModel<UserModel> getAllUsers(){
-        return userAssembler.toCollectionModel(userService.getAll());
+    public PagedModel<UserModel> getAllUsers(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                             @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                             @RequestParam Map<String, String> criteriaParams){
+        PagedDTO<User> pagedDTO;
+        try {
+            pagedDTO = userService.get(UserCriteria.createCriteria(criteriaParams), size, page);
+        } catch (IncorrectPageServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (NotFoundServiceException e) {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+        } catch (ServiceException e){
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+        }
+
+        return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
     @GetMapping(value = "/{email}", produces = { "application/prs.hal-forms+json" })

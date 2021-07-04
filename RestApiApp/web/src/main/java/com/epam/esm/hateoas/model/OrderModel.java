@@ -1,13 +1,7 @@
 package com.epam.esm.hateoas.model;
 
-import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Order;
-import com.epam.esm.entity.User;
-import com.epam.esm.util.CustomLocalDateTimeDeserializer;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
@@ -26,8 +20,10 @@ public class OrderModel extends RepresentationModel<OrderModel> {
 
     private Float cost;
 
-    private GiftCertificate giftCertificate;
+    @JsonIgnore
+    private GiftCertificateModel giftCertificate;
 
+    @JsonIgnore
     private UserModel user;
 
     public OrderModel() {
@@ -39,11 +35,11 @@ public class OrderModel extends RepresentationModel<OrderModel> {
         this.cost = cost;
     }
 
-    public GiftCertificate getGiftCertificate() {
+    public GiftCertificateModel getGiftCertificate() {
         return giftCertificate;
     }
 
-    public void setGiftCertificate(GiftCertificate giftCertificate) {
+    public void setGiftCertificate(GiftCertificateModel giftCertificate) {
         this.giftCertificate = giftCertificate;
     }
 

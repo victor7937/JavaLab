@@ -80,7 +80,7 @@ public class GiftCertificateController {
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NO_CONTENT), e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
@@ -90,7 +90,7 @@ public class GiftCertificateController {
 
         return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
-    
+
     /**
      * Get method for receiving one certificate by id if it exists
      * @param id - id of certificate
