@@ -1,24 +1,5 @@
 package com.epam.esm;
 
-import com.epam.esm.entity.Criteria;
-import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.exception.DataNotExistRepositoryException;
-import com.epam.esm.exception.RepositoryException;
-import com.epam.esm.repository.GiftCertificateRepository;
-import com.epam.esm.repository.impl.GiftCertificateRepositoryImpl;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import com.epam.esm.entity.Tag;
-
-import java.util.List;
-import java.util.Optional;
-
 
 public class CertificatesRepositoryTest {
 

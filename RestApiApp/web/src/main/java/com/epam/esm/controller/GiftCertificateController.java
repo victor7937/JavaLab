@@ -3,7 +3,7 @@ package com.epam.esm.controller;
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.OrderDTO;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.exception.IncorrectDataServiceException;
@@ -24,7 +24,6 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +32,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.hateoas.IanaLinkRelations;
 
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -71,25 +68,19 @@ public class GiftCertificateController {
 
     /**
      * Get method for receiving list of certificates by some criteria
-     * @param tagNames - tags for searching, param is optional
-     * @param sortBy - field for sorting
-     * @param sortOrder - sorting order(ASC or DESC)
-     * @param namePart - part of certificate name for searching
      * @return List of certificates in JSON
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    public PagedModel<GiftCertificateModel> getCertificates (@RequestParam(name = "tags", required = false) Optional<Set<String>> tagNames,
-                                                             @RequestParam(name = "sort", required = false) Optional<String> sortBy,
-                                                             @RequestParam(name = "order", required = false) Optional<String> sortOrder,
-                                                             @RequestParam(name = "part", required = false) Optional<String> namePart,
-                                                                 @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
-                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
-
+    public PagedModel<GiftCertificateModel> getCertificates ( @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                                              @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                                              @RequestParam Map<String, String> criteriaParams) {
         PagedDTO<GiftCertificate> pagedDTO;
         try {
-             pagedDTO = giftCertificateService.get(Criteria.createCriteria(tagNames, namePart, sortBy, sortOrder), size, page);
+             pagedDTO = giftCertificateService.get(CertificateCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
@@ -97,6 +88,11 @@ public class GiftCertificateController {
 
         return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
+
+//    @RequestParam(name = "tags", required = false) Optional<Set<String>> tagNames,
+//    @RequestParam(name = "sort", required = false) Optional<String> sortBy,
+//    @RequestParam(name = "order", required = false) Optional<String> sortOrder,
+//    @RequestParam(name = "part", required = false) Optional<String> namePart
 
     /**
      * Get method for receiving one certificate by id if it exists

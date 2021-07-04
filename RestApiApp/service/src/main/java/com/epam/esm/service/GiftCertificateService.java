@@ -2,13 +2,9 @@ package com.epam.esm.service;
 
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.ServiceException;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 
 /**
@@ -17,7 +13,7 @@ import java.util.Set;
 public interface GiftCertificateService {
 
 
-    PagedDTO<GiftCertificate> get (Criteria criteria, int pageSize, int pageNumber) throws ServiceException;
+    PagedDTO<GiftCertificate> get (CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws ServiceException;
 
     /**
      * Get one gift certificate if id is correct

@@ -2,11 +2,9 @@ package com.epam.esm.repository;
 
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.RepositoryException;
-
-import java.util.List;
 
 /**
  * Repository for manipulating certificate data in certificates-tag database
@@ -15,10 +13,10 @@ public interface GiftCertificateRepository {
 
     /**
      * Get gift certificates with some criteria
-     * @param criteria - searching certificates criteria
+     * @param certificateCriteria - searching certificates criteria
      * @return list of some certificates which match the criteria
      */
-    PagedDTO<GiftCertificate> getByCriteria(Criteria criteria, int pageSize, int pageNumber) throws RepositoryException;
+    PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get one gift certificate by id if such id exists

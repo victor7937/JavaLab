@@ -2,25 +2,18 @@ package com.epam.esm.service.impl;
 
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.validator.ServiceValidator;
-import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
-
-    private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
     private final GiftCertificateRepository giftCertificateRepository;
 
     private final ServiceValidator<CertificateDTO, Long> validator;
@@ -28,6 +21,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
+    private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
+    private static final String INVALID_PAGE_PARAMS = "Page params are invalid";
+
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO, Long> validator) {
         this.giftCertificateRepository = giftCertificateRepository;
@@ -35,10 +31,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public PagedDTO<GiftCertificate> get(Criteria criteria, int pageSize, int pageNumber) throws ServiceException {
+    public PagedDTO<GiftCertificate> get(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws ServiceException {
         PagedDTO<GiftCertificate> pagedDTO;
+        if (!validator.isPageParamsValid(pageSize, pageNumber)){
+            throw new IncorrectDataServiceException(INVALID_PAGE_PARAMS);
+        }
         try {
-            pagedDTO = giftCertificateRepository.getByCriteria(criteria, pageSize, pageNumber);
+            pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
         } catch (IncorrectPageRepositoryException e) {
             throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
         } catch (RepositoryException e){

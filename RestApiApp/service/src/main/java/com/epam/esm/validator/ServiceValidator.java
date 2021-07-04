@@ -20,4 +20,8 @@ public interface ServiceValidator <T,K> {
      * @return true if id is correct, else false
      */
     boolean isIdValid(K id);
+
+    default boolean isPageParamsValid(int pageSize, int pageNumber){
+        return pageSize > 0 && pageNumber > 0;
+    }
 }

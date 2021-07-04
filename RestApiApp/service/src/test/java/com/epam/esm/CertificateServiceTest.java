@@ -1,29 +1,9 @@
 package com.epam.esm;
 
-import com.epam.esm.entity.Criteria;
-import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.*;
-import com.epam.esm.repository.GiftCertificateRepository;
-import com.epam.esm.service.GiftCertificateService;
-import com.epam.esm.service.impl.GiftCertificateServiceImpl;
-import com.epam.esm.validator.CertificateValidator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CertificateServiceTest {

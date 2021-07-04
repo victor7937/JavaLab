@@ -1,5 +1,6 @@
 package com.epam.esm.repository.impl;
 
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.*;
@@ -42,7 +43,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @Override
     @Transactional
-    public PagedDTO<GiftCertificate> getByCriteria(Criteria criteria, int pageSize, int pageNumber) throws RepositoryException {
+    public PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
 
@@ -50,9 +51,9 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         Predicate conditions = criteriaBuilder.conjunction();
         criteriaQuery.select(gcRoot).distinct(true);
 
-        if (criteria.isTagAdded()){
+        if (certificateCriteria.isTagAdded()){
             Expression<Set<Tag>> tags = gcRoot.get(GiftCertificate_.tags);
-            for (String name : criteria.getTagNames()){
+            for (String name : certificateCriteria.getTagNames()){
                 Tag tag = tagRepository.getByName(name);
                 if (tag == null){
                     return new PagedDTO<>();
@@ -61,8 +62,8 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
                 conditions = criteriaBuilder.and(conditions, p);
             }
         }
-        if (!criteria.getNamePart().isBlank()){
-            Predicate p = criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%" + criteria.getNamePart() + "%");
+        if (!certificateCriteria.getNamePart().isBlank()){
+            Predicate p = criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%" + certificateCriteria.getNamePart() + "%");
             conditions = criteriaBuilder.and(conditions, p);
         }
 
@@ -74,8 +75,8 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
         criteriaQuery.where(conditions);
 
-        Path<?> sortPath = gcRoot.get(criteria.getField().attribute);
-        if (criteria.getOrder() == Criteria.SortingOrder.DESC) {
+        Path<?> sortPath = gcRoot.get(certificateCriteria.getField().attribute);
+        if (certificateCriteria.getOrder() == CertificateCriteria.SortingOrder.DESC) {
             criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
         } else {
             criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
@@ -83,7 +84,6 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
         TypedQuery<GiftCertificate> typedQuery = entityManager.createQuery(criteriaQuery);
 
-        System.out.println(metadata.getTotalPages());
         List<GiftCertificate> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
                 .setMaxResults(pageSize)
                 .getResultList();
