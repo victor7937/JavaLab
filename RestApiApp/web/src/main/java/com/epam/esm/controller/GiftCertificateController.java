@@ -79,6 +79,8 @@ public class GiftCertificateController {
              pagedDTO = giftCertificateService.get(CertificateCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (NotFoundServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.NO_CONTENT), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
@@ -88,12 +90,7 @@ public class GiftCertificateController {
 
         return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
-
-//    @RequestParam(name = "tags", required = false) Optional<Set<String>> tagNames,
-//    @RequestParam(name = "sort", required = false) Optional<String> sortBy,
-//    @RequestParam(name = "order", required = false) Optional<String> sortOrder,
-//    @RequestParam(name = "part", required = false) Optional<String> namePart
-
+    
     /**
      * Get method for receiving one certificate by id if it exists
      * @param id - id of certificate

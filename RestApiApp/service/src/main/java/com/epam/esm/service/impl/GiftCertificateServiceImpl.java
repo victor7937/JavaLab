@@ -23,6 +23,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
     private static final String INVALID_PAGE_PARAMS = "Page params are invalid";
+    private static final String NOT_EXIST_WITH_CRITERIA_MSG = "No gift certificates with such criteria";
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO, Long> validator) {
@@ -40,6 +41,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
         } catch (IncorrectPageRepositoryException e) {
             throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+        } catch (DataNotExistRepositoryException e) {
+            throw new NotFoundServiceException(NOT_EXIST_WITH_CRITERIA_MSG, e);
         } catch (RepositoryException e){
             throw new ServiceException(e);
         }
