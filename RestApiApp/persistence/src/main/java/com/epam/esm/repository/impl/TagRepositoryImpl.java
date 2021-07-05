@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +27,16 @@ import java.util.Optional;
 public class TagRepositoryImpl implements TagRepository{
 
     private static final String JPQL_GET_BY_NAME = "SELECT t from Tag t where t.name = :name";
+
+    private static final String SQL_GET_MOST_USED_TAG_OF_VALUABLE_CLIENT =
+            "SELECT t.id, t.name, COUNT(t.id) as tg_count from user u" +
+            " join orders o on u.email = o.users_email" +
+            " join gift_certificate gc on gc.id = o.certificate_id" +
+            " join m2m_certificate_tag m2mct on gc.id = m2mct.cert_id" +
+            " join tag t on t.id = m2mct.tag_id where u.email =" +
+            " (SELECT s.email from (SELECT SUM(o.cost) as s_cost, u.email as email from orders o" +
+            " join user u on u.email = o.users_email group by u.email order by s_cost DESC LIMIT 1) s)" +
+            " group by t.name order by tg_count desc LIMIT 1";
 
     private final EntityManager entityManager;
     
@@ -93,6 +104,14 @@ public class TagRepositoryImpl implements TagRepository{
     public void delete(Long id) throws RepositoryException {
        Tag tag = getById(id);
        entityManager.remove(tag);
+    }
+
+    @Override
+    public Tag getMostUsedTagOfValuableCustomer() {
+        List<Object[]> resultSet = entityManager.createNativeQuery(SQL_GET_MOST_USED_TAG_OF_VALUABLE_CLIENT).getResultList();
+        Long tagId = ((BigInteger) resultSet.get(0)[0]).longValue();
+        String tagName = (String) resultSet.get(0)[1];
+        return new Tag(tagId, tagName);
     }
 
     @Override

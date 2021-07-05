@@ -122,6 +122,11 @@ public class TagController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/most-used-tag")
+    Tag getMostUsedTagOfValuableCustomer() {
+        return tagService.getMostUsedTagOfValuableCustomer();
+    }
+
     private int generateStatusCode(HttpStatus status){
         return status.value() * 10 + 2;
     }

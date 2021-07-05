@@ -39,4 +39,6 @@ public interface TagService {
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
     void delete(Long id) throws ServiceException;
+
+    Tag getMostUsedTagOfValuableCustomer();
 }

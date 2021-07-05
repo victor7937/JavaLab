@@ -91,4 +91,9 @@ public class TagServiceImpl implements TagService{
             throw new ServiceException(e);
         }
     }
+
+    @Override
+    public Tag getMostUsedTagOfValuableCustomer() {
+        return tagRepository.getMostUsedTagOfValuableCustomer();
+    }
 }

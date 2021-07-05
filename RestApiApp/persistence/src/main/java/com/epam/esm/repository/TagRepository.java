@@ -44,4 +44,6 @@ public interface TagRepository {
      */
     void delete(Long id) throws RepositoryException;
 
+    Tag getMostUsedTagOfValuableCustomer ();
+
 }
