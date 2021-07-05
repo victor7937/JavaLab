@@ -4,6 +4,7 @@ import org.springframework.hateoas.PagedModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public class PagedDTO <T>{
 
@@ -38,5 +39,18 @@ public class PagedDTO <T>{
 
     public boolean isEmpty(){
         return page.isEmpty();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PagedDTO<?> pagedDTO = (PagedDTO<?>) o;
+        return Objects.equals(page, pagedDTO.page) && Objects.equals(pageMetadata, pagedDTO.pageMetadata);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(page, pageMetadata);
     }
 }

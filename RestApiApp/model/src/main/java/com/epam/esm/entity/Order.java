@@ -1,12 +1,12 @@
 package com.epam.esm.entity;
 
+import com.epam.esm.audit.OrderAuditListener;
 import com.epam.esm.util.CustomLocalDateTimeDeserializer;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.hateoas.RepresentationModel;
+
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +15,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "orders")
+@EntityListeners(OrderAuditListener.class)
 public class Order implements Serializable {
 
     private static final long serialVersionUID = -2459886736436355958L;
@@ -27,7 +28,6 @@ public class Order implements Serializable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    @CreationTimestamp
     @Column(name = "time_of_purchase")
     private LocalDateTime timeOfPurchase;
 

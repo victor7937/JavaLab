@@ -1,15 +1,14 @@
 package com.epam.esm.entity;
 
+import com.epam.esm.audit.GiftCertificateAuditListener;
 import com.epam.esm.util.CustomLocalDateTimeDeserializer;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.boot.actuate.audit.listener.AuditListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -25,6 +24,7 @@ import java.util.*;
 @Entity
 @Table(name = "gift_certificate")
 @DynamicUpdate
+@EntityListeners(GiftCertificateAuditListener.class)
 public class GiftCertificate implements Serializable {
 
     private static final long serialVersionUID = 6572422907365578328L;
@@ -61,14 +61,12 @@ public class GiftCertificate implements Serializable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    @CreationTimestamp
     @Column(name = "create_date")
     private LocalDateTime createDate;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    @UpdateTimestamp
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
