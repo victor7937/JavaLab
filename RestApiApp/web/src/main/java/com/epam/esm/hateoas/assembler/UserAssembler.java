@@ -12,6 +12,7 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -33,7 +34,8 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         UserModel model = instantiateModel(entity);
         modelMapper.map(entity, model);
         Link selfRel = linkTo(methodOn(UserController.class).getByEmail(entity.getEmail())).withSelfRel();
-        Link ordersRel = linkTo(methodOn(UserController.class).getOrdersOfUser(entity.getEmail())).withRel("orders");
+        Link ordersRel = linkTo(methodOn(UserController.class).getOrdersOfUser(entity.getEmail(),10,1,
+                new HashMap<>())).withRel("orders");
         model.add(selfRel, ordersRel);
         return model;
     }

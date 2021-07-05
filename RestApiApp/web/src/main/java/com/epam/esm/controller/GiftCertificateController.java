@@ -79,13 +79,14 @@ public class GiftCertificateController {
              pagedDTO = giftCertificateService.get(CertificateCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+        }
+        if (pagedDTO.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
 
         return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());

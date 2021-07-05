@@ -1,13 +1,12 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.dto.OrderDTO;
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
-import com.epam.esm.exception.DataNotExistRepositoryException;
-import com.epam.esm.exception.NotFoundServiceException;
-import com.epam.esm.exception.RepositoryException;
-import com.epam.esm.exception.ServiceException;
+import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
@@ -15,7 +14,6 @@ import com.epam.esm.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 
 @Repository
 public class OrderServiceImpl implements OrderService {
@@ -29,6 +27,7 @@ public class OrderServiceImpl implements OrderService {
     private static final String USER_NOT_EXIST_MSG = "User with email  %s doesn't exist";
     private static final String CERTIFICATE_NOT_EXIST_MSG = "Certificate with id %s doesn't exist";
     private static final String INCORRECT_ORDER_MSG = "Incorrect order id or users email";
+    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, GiftCertificateRepository certificateRepository) {
@@ -65,12 +64,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrders(String userEmail) throws ServiceException {
-        List<Order> orders;
+    public PagedDTO<Order> get(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException {
+        PagedDTO<Order> orders;
         try {
-            orders = orderRepository.getOrders(userEmail);
+            orders = orderRepository.getOrders(userEmail, criteria, pageSize, pageNumber);
         } catch (DataNotExistRepositoryException e) {
             throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, userEmail), e);
+        } catch (IncorrectPageRepositoryException e) {
+            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
         } catch (RepositoryException e){
             throw new ServiceException(e);
         }

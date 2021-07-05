@@ -41,8 +41,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
         } catch (IncorrectPageRepositoryException e) {
             throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
-        } catch (DataNotExistRepositoryException e) {
-            throw new NotFoundServiceException(e);
         } catch (RepositoryException e){
             throw new ServiceException(e);
         }

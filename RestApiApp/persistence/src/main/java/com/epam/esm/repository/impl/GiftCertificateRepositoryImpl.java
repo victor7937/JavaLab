@@ -50,8 +50,17 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         Predicate conditions = criteriaBuilder.conjunction();
         criteriaQuery.select(gcRoot).distinct(true);
 
+
         if (certificateCriteria.isTagAdded()){
-            conditions = criteriaBuilder.and(conditions, createTagsMatchingPredicate(certificateCriteria, gcRoot));
+            boolean areAllTagsValid = true;
+            try {
+                conditions = criteriaBuilder.and(conditions, createTagsMatchingPredicate(certificateCriteria, gcRoot));
+            } catch (DataNotExistRepositoryException e){
+                areAllTagsValid = false;
+            }
+            if (!areAllTagsValid) {
+                return new PagedDTO<>();
+            }
         }
         if (!certificateCriteria.getNamePart().isBlank()){
             conditions = criteriaBuilder.and(conditions, createNamePartPredicate(certificateCriteria, gcRoot));
@@ -64,7 +73,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
         Long count = CriteriaUtil.getResultsCount(entityManager, conditions, GiftCertificate.class);
         if (count == 0L){
-            throw new DataNotExistRepositoryException();
+            return new PagedDTO<>();
         }
 
         PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(pageSize, pageNumber, count);

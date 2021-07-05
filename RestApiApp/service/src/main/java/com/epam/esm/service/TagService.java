@@ -1,5 +1,6 @@
 package com.epam.esm.service;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.ServiceException;
 
@@ -14,7 +15,7 @@ public interface TagService {
      * Get all tags
      * @return list of tags
      */
-    List<Tag> getAll();
+    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException;
 
     /**
      * Get one tag if id is correct

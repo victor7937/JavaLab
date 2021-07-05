@@ -52,7 +52,7 @@ public class UserRepositoryImpl implements UserRepository {
         Long count = CriteriaUtil.getResultsCount(entityManager, conditions, User.class);
 
         if (count == 0L){
-            throw new DataNotExistRepositoryException();
+            return new PagedDTO<>();
         }
 
         PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(pageSize, pageNumber, count);

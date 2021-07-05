@@ -1,18 +1,25 @@
 package com.epam.esm.repository.impl;
 
+import com.epam.esm.criteria.OrderCriteria;
+import com.epam.esm.criteria.SortingOrder;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.*;
 import com.epam.esm.entity.Order;
-import com.epam.esm.entity.User;
 import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.IncorrectPageRepositoryException;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
+import com.epam.esm.util.CriteriaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
@@ -37,10 +44,55 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     @Transactional
-    public List<Order> getOrders(String userEmail) throws RepositoryException {
-        List<Order> orders = userRepository.getByEmail(userEmail).getOrders();
-        //orders.forEach(entityManager::detach);
-        return orders;
+    public PagedDTO<Order> getOrders(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
+        if (!userRepository.isUserExists(userEmail)){
+            throw new DataNotExistRepositoryException();
+        }
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Order> criteriaQuery = criteriaBuilder.createQuery(Order.class);
+
+
+        Root<Order> orderRoot = criteriaQuery.from(Order.class);
+        Join<Order, User> orderJoin = orderRoot.join(Order_.user);
+        Predicate conditions = criteriaBuilder.equal(orderJoin.get(User_.email), userEmail);
+        criteriaQuery.select(orderRoot).distinct(true);
+
+        conditions = criteriaBuilder.and(conditions, createCostBetweenPredicate(criteria, orderRoot));
+        conditions = criteriaBuilder.and(conditions, createTimeBetweenPredicate(criteria, orderRoot));
+
+
+        CriteriaQuery<Long> cq = criteriaBuilder.createQuery(Long.class);
+        cq.select(criteriaBuilder.count(cq.from(Order.class).join(Order_.user)));
+        entityManager.createQuery(cq);
+        cq.where(conditions);
+        Long count = entityManager.createQuery(cq).getSingleResult();
+
+        if (count == 0L){
+            return new PagedDTO<>();
+        }
+
+        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(pageSize, pageNumber, count);
+        if (metadata.getTotalPages() < metadata.getNumber()) {
+            throw new IncorrectPageRepositoryException();
+        }
+
+        criteriaQuery.where(conditions);
+
+        Path<?> sortPath = orderRoot.get(criteria.getSortingField().attribute);
+        if (criteria.getSortingOrder() == SortingOrder.DESC) {
+            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
+        } else {
+            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
+        }
+
+        TypedQuery<Order> typedQuery = entityManager.createQuery(criteriaQuery);
+
+        List<Order> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+
+        return new PagedDTO<>(resultList, metadata);
     }
 
     @Override
@@ -49,5 +101,23 @@ public class OrderRepositoryImpl implements OrderRepository {
         return entityManager.createQuery(JPQL_GET_USERS_ORDER, Order.class)
                 .setParameter("id", orderId).setParameter("email", userEmail).getResultStream()
                 .findAny().orElseThrow(DataNotExistRepositoryException::new);
+    }
+
+    private Predicate createCostBetweenPredicate(OrderCriteria criteria, Root<Order> orderRoot) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Predicate conjunction = criteriaBuilder.conjunction();
+        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.ge(orderRoot.get(Order_.cost), criteria.getMinCost()));
+        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.le(orderRoot.get(Order_.cost), criteria.getMaxCost()));
+        return conjunction;
+    }
+
+    private Predicate createTimeBetweenPredicate(OrderCriteria criteria, Root<Order> orderRoot) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Predicate conjunction = criteriaBuilder.conjunction();
+        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.greaterThanOrEqualTo(orderRoot.get(Order_.timeOfPurchase),
+                criteria.getMinTime()));
+        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.lessThanOrEqualTo(orderRoot.get(Order_.timeOfPurchase),
+                criteria.getMaxTime()));
+        return conjunction;
     }
 }

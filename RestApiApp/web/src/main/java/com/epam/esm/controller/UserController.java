@@ -1,6 +1,7 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.criteria.CertificateCriteria;
+import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.GiftCertificate;
@@ -52,21 +53,23 @@ public class UserController {
     }
 
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    public PagedModel<UserModel> getAllUsers(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
-                                             @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
-                                             @RequestParam Map<String, String> criteriaParams){
+    public PagedModel<UserModel> getAllUsers( @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                              @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                              @RequestParam Map<String, String> criteriaParams){
         PagedDTO<User> pagedDTO;
         try {
             pagedDTO = userService.get(UserCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+        }
+
+        if (pagedDTO.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
 
         return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
@@ -87,18 +90,27 @@ public class UserController {
     }
 
     @GetMapping(value = "/{email}/orders", produces = { "application/prs.hal-forms+json" })
-    public CollectionModel<OrderModel> getOrdersOfUser(@PathVariable("email") String email){
-        List<Order> orders;
+    public PagedModel<OrderModel> getOrdersOfUser(@PathVariable("email") String email,
+                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                                  @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                                  @RequestParam Map<String, String> criteriaParams){
+        PagedDTO<Order> pagedDTO;
 
         try {
-            orders = orderService.getOrders(email);
-        } catch (NotFoundServiceException e) {
+           pagedDTO = orderService.get(email, OrderCriteria.createCriteria(criteriaParams), size, page);
+        } catch (NotFoundServiceException | IncorrectPageServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
         } catch (ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
+        if (pagedDTO.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
+        }
 
-        return orderAssembler.toCollectionModel(orders);
+        return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
     @GetMapping(value = "/{email}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
@@ -109,6 +121,7 @@ public class UserController {
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
         } catch (ServiceException e) {
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
         }
         return orderAssembler.toModel(order);

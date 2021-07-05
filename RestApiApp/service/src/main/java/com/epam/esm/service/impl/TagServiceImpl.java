@@ -1,5 +1,7 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.TagRepository;
@@ -20,6 +22,8 @@ public class TagServiceImpl implements TagService{
 
     private static final String NOT_EXIST_MSG = "Tag id with number %s doesn't exist";
     private static final String ALREADY_EXIST_MSG = "Tag with name %s already exists";
+    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
+    private static final String INVALID_PAGE_PARAMS = "Page params are invalid";
 
 
     @Autowired
@@ -29,8 +33,19 @@ public class TagServiceImpl implements TagService{
     }
 
     @Override
-    public List<Tag> getAll() {
-        return tagRepository.getAll();
+    public PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException {
+        PagedDTO<Tag> pagedDTO;
+        if (!validator.isPageParamsValid(pageSize, pageNumber)){
+            throw new IncorrectDataServiceException(INVALID_PAGE_PARAMS);
+        }
+        try {
+            pagedDTO = tagRepository.get(namePart, pageSize, pageNumber);
+        } catch (IncorrectPageRepositoryException e) {
+            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+        } catch (RepositoryException e){
+            throw new ServiceException(e);
+        }
+        return pagedDTO;
     }
 
     @Override

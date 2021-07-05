@@ -1,5 +1,6 @@
 package com.epam.esm.repository;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.RepositoryException;
 
@@ -14,7 +15,7 @@ public interface TagRepository {
      * Get all tags from database
      * @return list of all tags
      */
-    List<Tag> getAll();
+    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get one tag if id is correct from database
