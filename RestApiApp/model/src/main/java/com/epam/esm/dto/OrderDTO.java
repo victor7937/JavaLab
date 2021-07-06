@@ -2,30 +2,30 @@ package com.epam.esm.dto;
 
 public class OrderDTO {
 
-    private String usersEmail;
-    private Long certificateId;
+    private String email;
+    private Long id;
 
     public OrderDTO() {
     }
 
-    public OrderDTO(String usersEmail, Long certificateId) {
-        this.usersEmail = usersEmail;
-        this.certificateId = certificateId;
+    public OrderDTO(String email, Long id) {
+        this.email = email;
+        this.id = id;
     }
 
-    public String getUsersEmail() {
-        return usersEmail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsersEmail(String usersEmail) {
-        this.usersEmail = usersEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public Long getCertificateId() {
-        return certificateId;
+    public Long getId() {
+        return id;
     }
 
-    public void setCertificateId(Long certificateId) {
-        this.certificateId = certificateId;
+    public void setId(Long id) {
+        this.id = id;
     }
 }

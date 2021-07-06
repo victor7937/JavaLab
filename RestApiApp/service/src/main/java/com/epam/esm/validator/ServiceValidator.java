@@ -3,9 +3,8 @@ package com.epam.esm.validator;
 
 /**
  * Interface for validation data at the service layer.
- * Validates some entity that goes through the service layer and its id.
- * @param <T> - entity for validation type
- * @param <K> - type of its id
+ * Validates some model that goes through the service layer, its id and page params.
+ * @param <T> - model type for validation
  */
 public interface ServiceValidator <T> {
 

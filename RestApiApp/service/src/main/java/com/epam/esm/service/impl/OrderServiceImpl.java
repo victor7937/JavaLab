@@ -57,17 +57,17 @@ public class OrderServiceImpl implements OrderService {
 
         User user;
         try {
-            user = userRepository.getByEmail(orderDTO.getUsersEmail());
+            user = userRepository.getByEmail(orderDTO.getEmail());
         } catch (DataNotExistRepositoryException e){
-            throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, orderDTO.getUsersEmail()), e);
+            throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, orderDTO.getEmail()), e);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
         GiftCertificate certificate;
         try {
-            certificate = certificateRepository.getById(orderDTO.getCertificateId());
+            certificate = certificateRepository.getById(orderDTO.getId());
         } catch (DataNotExistRepositoryException e){
-            throw new NotFoundServiceException(String.format(CERTIFICATE_NOT_EXIST_MSG, orderDTO.getCertificateId()), e);
+            throw new NotFoundServiceException(String.format(CERTIFICATE_NOT_EXIST_MSG, orderDTO.getId()), e);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }

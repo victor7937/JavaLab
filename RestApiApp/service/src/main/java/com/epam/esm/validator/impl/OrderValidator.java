@@ -10,7 +10,7 @@ public class OrderValidator implements ServiceValidator<OrderDTO> {
 
     @Override
     public boolean validate(OrderDTO model) {
-        return model != null && isLongIdValid(model.getCertificateId()) && isStringIdValid(model.getUsersEmail());
+        return model != null && isLongIdValid(model.getId()) && isStringIdValid(model.getEmail());
     }
 
     @Override
