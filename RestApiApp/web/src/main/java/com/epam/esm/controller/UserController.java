@@ -1,10 +1,8 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
 import com.epam.esm.exception.IncorrectDataServiceException;
@@ -17,9 +15,9 @@ import com.epam.esm.hateoas.model.OrderModel;
 import com.epam.esm.hateoas.model.UserModel;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
+import com.epam.esm.util.StatusCodeGenerator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
 
 
 import org.springframework.hateoas.PagedModel;
@@ -28,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -60,12 +57,12 @@ public class UserController {
         try {
             pagedDTO = userService.get(UserCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
 
         if (pagedDTO.isEmpty()){
@@ -81,10 +78,12 @@ public class UserController {
         try {
             user = userService.getByEmail(email);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return userAssembler.toModel(user);
     }
@@ -97,14 +96,14 @@ public class UserController {
         PagedDTO<Order> pagedDTO;
 
         try {
-           pagedDTO = orderService.get(email, OrderCriteria.createCriteria(criteriaParams), size, page);
+           pagedDTO = orderService.getOrdersOfUser(email, OrderCriteria.createCriteria(criteriaParams), size, page);
         } catch (NotFoundServiceException | IncorrectPageServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
@@ -119,15 +118,14 @@ public class UserController {
         try {
            order = orderService.getOrder(email, orderId);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return orderAssembler.toModel(order);
     }
-
-    private int generateStatusCode(HttpStatus status){
-        return status.value() * 10 + 3;
-    }
+    
 }

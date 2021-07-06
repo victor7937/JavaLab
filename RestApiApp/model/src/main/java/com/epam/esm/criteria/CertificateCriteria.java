@@ -38,9 +38,6 @@ public class CertificateCriteria {
 
     private LocalDateTime maxCreateDate;
 
-
-
-
     private CertificateCriteria(Optional<Set<String>> tagNames, Optional<String> namePart, Optional<String> descriptionPart,
                                 Optional<CertificateCriteria.SortingField> field, Optional<SortingOrder> order, Optional<Float> minPrice,
                                 Optional<Float> maxPrice, Optional<LocalDateTime> minDate, Optional<LocalDateTime> maxDate) {

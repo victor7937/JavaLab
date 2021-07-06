@@ -6,7 +6,7 @@ import com.epam.esm.exception.*;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.service.TagService;
 import com.epam.esm.service.impl.TagServiceImpl;
-import com.epam.esm.validator.TagValidator;
+import com.epam.esm.validator.impl.TagValidator;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.*;

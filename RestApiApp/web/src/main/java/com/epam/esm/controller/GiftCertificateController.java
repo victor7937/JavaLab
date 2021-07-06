@@ -18,6 +18,7 @@ import com.epam.esm.exception.ServiceException;
 
 import com.epam.esm.service.OrderService;
 import com.epam.esm.util.PatchUtil;
+import com.epam.esm.util.StatusCodeGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -78,12 +79,12 @@ public class GiftCertificateController {
         try {
              pagedDTO = giftCertificateService.get(CertificateCriteria.createCriteria(criteriaParams), size, page);
         } catch (IncorrectPageServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
@@ -103,12 +104,12 @@ public class GiftCertificateController {
         try {
             giftCertificate = giftCertificateService.getById(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         GiftCertificateModel certificateModel = certificateAssembler.toModel(giftCertificate);
         addAffordances(certificateModel);
@@ -126,10 +127,10 @@ public class GiftCertificateController {
         try {
             certificateForResponse = giftCertificateService.add(giftCertificate);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return certificateAssembler.toModel(certificateForResponse);
     }
@@ -145,12 +146,12 @@ public class GiftCertificateController {
         try {
             giftCertificateService.delete(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -172,12 +173,12 @@ public class GiftCertificateController {
             CertificateDTO modified = PatchUtil.applyPatch(patch, current, CertificateDTO.class);
             certificateForResponse = giftCertificateService.update(modified, id);
         } catch (NotFoundServiceException e){
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return certificateAssembler.toModel(certificateForResponse);
     }
@@ -188,10 +189,12 @@ public class GiftCertificateController {
         try {
             orderForResponse = orderService.makeOrder(orderDTO);
         } catch (NotFoundServiceException e){
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return orderAssembler.toModel(orderForResponse);
     }
@@ -203,8 +206,5 @@ public class GiftCertificateController {
                 .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
                 .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
     }
-
-    private int generateStatusCode(HttpStatus status){
-        return status.value() * 10 + 1;
-    }
+    
 }

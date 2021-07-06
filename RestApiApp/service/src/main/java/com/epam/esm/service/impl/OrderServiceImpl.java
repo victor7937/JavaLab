@@ -11,6 +11,8 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
 import com.epam.esm.service.OrderService;
+import com.epam.esm.validator.CriteriaValidator;
+import com.epam.esm.validator.ServiceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -18,26 +20,41 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OrderServiceImpl implements OrderService {
 
+
+    private static final String EMAIL_NOT_VALID = "User email is not valid";
     private final OrderRepository orderRepository;
 
     private final UserRepository userRepository;
 
     private final GiftCertificateRepository certificateRepository;
 
-    private static final String USER_NOT_EXIST_MSG = "User with email  %s doesn't exist";
+    private final CriteriaValidator<OrderCriteria> criteriaValidator;
+
+    private final ServiceValidator<OrderDTO> validator;
+
+    private static final String USER_NOT_EXIST_MSG = "User with email %s doesn't exist";
     private static final String CERTIFICATE_NOT_EXIST_MSG = "Certificate with id %s doesn't exist";
     private static final String INCORRECT_ORDER_MSG = "Incorrect order id or users email";
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
+    private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
+    private static final String INCORRECT_ORDER_PARAMS_MSG = "Incorrect order details";
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, GiftCertificateRepository certificateRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, GiftCertificateRepository certificateRepository,
+                            CriteriaValidator<OrderCriteria> criteriaValidator, ServiceValidator<OrderDTO> validator) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.certificateRepository = certificateRepository;
+        this.criteriaValidator = criteriaValidator;
+        this.validator = validator;
     }
 
     @Override
     public Order makeOrder(OrderDTO orderDTO) throws ServiceException {
+        if (!validator.validate(orderDTO)){
+            throw new IncorrectDataServiceException(INCORRECT_ORDER_PARAMS_MSG);
+        }
+
         User user;
         try {
             user = userRepository.getByEmail(orderDTO.getUsersEmail());
@@ -64,7 +81,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PagedDTO<Order> get(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException {
+    public PagedDTO<Order> getOrdersOfUser(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException {
+        if (!(criteriaValidator.validateCriteria(criteria) && validator.isPageParamsValid(pageSize, pageNumber))){
+            throw new IncorrectDataServiceException(INCORRECT_PARAMS_MSG);
+        }
+        if (!validator.isStringIdValid(userEmail)){
+            throw new IncorrectDataServiceException(EMAIL_NOT_VALID);
+        }
         PagedDTO<Order> orders;
         try {
             orders = orderRepository.getOrders(userEmail, criteria, pageSize, pageNumber);
@@ -81,6 +104,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order getOrder(String userEmail, Long orderId) throws ServiceException {
         Order order;
+        if (!(validator.isLongIdValid(orderId) && validator.isStringIdValid(userEmail))){
+            throw new IncorrectDataServiceException(INCORRECT_ORDER_MSG);
+        }
+
         try {
             order = orderRepository.getOrder(userEmail, orderId);
         } catch (DataNotExistRepositoryException e) {

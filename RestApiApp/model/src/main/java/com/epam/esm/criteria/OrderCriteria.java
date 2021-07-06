@@ -43,6 +43,7 @@ public class OrderCriteria {
                 .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
                 .map(s -> SortingField.valueOf(s.toUpperCase()));
 
+
         Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
                 .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
                 .map(s -> SortingOrder.valueOf(s.toUpperCase()));
@@ -72,6 +73,8 @@ public class OrderCriteria {
         return new OrderCriteria(sortingField, order, minCost, maxCost, minTime, maxTime);
     }
 
+
+
     public SortingField getSortingField() {
         return sortingField;
     }
@@ -97,7 +100,6 @@ public class OrderCriteria {
     }
 
     public enum SortingField {
-
         ID(Order_.id), COST(Order_.cost), TIME(Order_.timeOfPurchase);
 
         public final SingularAttribute<Order, ?> attribute;

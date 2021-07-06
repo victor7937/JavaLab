@@ -44,4 +44,6 @@ public interface GiftCertificateService {
      * @throws ServiceException if current or modified contains incorrect data
      */
     GiftCertificate update(CertificateDTO modified, Long id) throws ServiceException;
+
+
 }

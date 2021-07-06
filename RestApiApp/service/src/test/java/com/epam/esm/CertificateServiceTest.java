@@ -9,7 +9,8 @@ import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.impl.GiftCertificateServiceImpl;
-import com.epam.esm.validator.CertificateValidator;
+import com.epam.esm.validator.impl.CertificateCriteriaValidator;
+import com.epam.esm.validator.impl.CertificateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ public class CertificateServiceTest {
 
     @BeforeEach
     void init(){
-        service = new GiftCertificateServiceImpl(repository, new CertificateValidator());
+        service = new GiftCertificateServiceImpl(repository, new CertificateValidator(), new CertificateCriteriaValidator());
     }
 
     @Nested

@@ -7,6 +7,7 @@ import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
+import com.epam.esm.validator.CriteriaValidator;
 import com.epam.esm.validator.ServiceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,27 +17,32 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private final GiftCertificateRepository giftCertificateRepository;
 
-    private final ServiceValidator<CertificateDTO, Long> validator;
+    private final ServiceValidator<CertificateDTO> validator;
+
+    private final CriteriaValidator<CertificateCriteria> criteriaValidator;
 
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
-    private static final String INVALID_PAGE_PARAMS = "Page params are invalid";
-    private static final String NOT_EXIST_WITH_CRITERIA_MSG = "No gift certificates with such criteria";
+    private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
 
     @Autowired
-    public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO, Long> validator) {
+    public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO> validator,
+                                      CriteriaValidator<CertificateCriteria> criteriaValidator) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.validator = validator;
+        this.criteriaValidator = criteriaValidator;
     }
+
 
     @Override
     public PagedDTO<GiftCertificate> get(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws ServiceException {
-        PagedDTO<GiftCertificate> pagedDTO;
-        if (!validator.isPageParamsValid(pageSize, pageNumber)){
-            throw new IncorrectDataServiceException(INVALID_PAGE_PARAMS);
+        if (!(validator.isPageParamsValid(pageSize, pageNumber) && criteriaValidator.validateCriteria(certificateCriteria))){
+            throw new IncorrectDataServiceException(INCORRECT_PARAMS_MSG);
         }
+
+        PagedDTO<GiftCertificate> pagedDTO;
         try {
             pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
         } catch (IncorrectPageRepositoryException e) {
@@ -49,7 +55,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     public GiftCertificate getById(Long id) throws ServiceException{
-        if (!validator.isIdValid(id)){
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
 
@@ -81,7 +87,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     public void delete(Long id) throws ServiceException {
-        if (!validator.isIdValid(id)){
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
 
@@ -96,7 +102,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     public GiftCertificate update(CertificateDTO modified, Long id) throws ServiceException {
-        if (!(validator.validate(modified) && validator.isIdValid(id))){
+        if (!(validator.validate(modified) && validator.isLongIdValid(id))){
             throw new IncorrectDataServiceException(INCORRECT_CERTIFICATE_MSG);
         }
 

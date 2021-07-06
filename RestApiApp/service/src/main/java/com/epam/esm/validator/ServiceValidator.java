@@ -7,19 +7,22 @@ package com.epam.esm.validator;
  * @param <T> - entity for validation type
  * @param <K> - type of its id
  */
-public interface ServiceValidator <T,K> {
+public interface ServiceValidator <T> {
 
     /**
-     * @param entity - entity object for checking
-     * @return - true if entity is correct, else false
+     * @param model - model object for checking
+     * @return - true if model is correct, else false
      */
-    boolean validate(T entity);
+    boolean validate(T model);
 
-    /**
-     * @param id - id of entity for validation
-     * @return true if id is correct, else false
-     */
-    boolean isIdValid(K id);
+    default boolean isLongIdValid(Long id) {
+        return id != null && id > 0L;
+    };
+
+    default boolean isStringIdValid(String id) {
+        return id != null && !id.isBlank();
+    };
+
 
     default boolean isPageParamsValid(int pageSize, int pageNumber){
         return pageSize > 0 && pageNumber > 0;
