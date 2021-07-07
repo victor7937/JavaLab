@@ -39,7 +39,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * Controller for REST operations with gift certificates
- * Makes get, get by id, add, delete and update operations
+ * Makes get, get by id, add, delete, update and buy operations
  */
 @RestController
 @RequestMapping("/certificates")
@@ -68,7 +68,7 @@ public class GiftCertificateController {
     }
 
     /**
-     * Get method for receiving list of certificates by some criteria
+     * Get method for receiving paged list of certificates by some criteria
      * @return List of certificates in JSON
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
@@ -183,6 +183,11 @@ public class GiftCertificateController {
         return certificateAssembler.toModel(certificateForResponse);
     }
 
+    /**
+     * Post method for buying gift certificate by user
+     * @param orderDTO contains users email and certificates id
+     * @return Order with all data about purchase
+     */
     @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
     public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
         Order orderForResponse;

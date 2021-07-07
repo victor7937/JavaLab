@@ -12,8 +12,12 @@ import java.util.List;
 public interface TagService {
 
     /**
-     * Get all tags
-     * @return list of tags
+     * Gets page with tags from data source
+     * @param namePart - part of tags name for searching
+     * @param pageSize - size of one page
+     * @param pageNumber - number of a current page
+     * @return page with tags found
+     * @throws ServiceException if pagination params are incorrect or some troubles in data source were happened
      */
     PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException;
 
@@ -40,5 +44,10 @@ public interface TagService {
      */
     void delete(Long id) throws ServiceException;
 
+
+    /**
+     * Gets the most widely used tag of a user with the highest cost of all orders
+     * @return Tag found
+     */
     Tag getMostUsedTagOfValuableCustomer();
 }

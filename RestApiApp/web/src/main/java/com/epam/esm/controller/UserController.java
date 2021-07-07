@@ -28,6 +28,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
+
+/**
+ * Controller for REST operations with users and its orders
+ * Makes get and get by id operations of users and their orders
+ */
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -49,6 +54,13 @@ public class UserController {
         this.orderAssembler = orderAssembler;
     }
 
+    /**
+     * Get method for receiving a page of users by some criteria
+     * @param size - size of page
+     * @param page - number of current page
+     * @param criteriaParams other params for filtering and sorting
+     * @return Page of users
+     */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
     public PagedModel<UserModel> getAllUsers( @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                               @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
@@ -72,6 +84,11 @@ public class UserController {
         return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
+    /**
+     * Get method for finding user by its email
+     * @param email - email of a user
+     * @return user found
+     */
     @GetMapping(value = "/{email}", produces = { "application/prs.hal-forms+json" })
     public UserModel getByEmail(@PathVariable("email") String email){
         User user;
@@ -88,6 +105,14 @@ public class UserController {
         return userAssembler.toModel(user);
     }
 
+    /**
+     * Get method for receiving a page of orders by some criteria
+     * @param email - email of a user
+     * @param size - size of a page
+     * @param page - current page
+     * @param criteriaParams - Other params for filtering and sorting
+     * @return page of orders
+     */
     @GetMapping(value = "/{email}/orders", produces = { "application/prs.hal-forms+json" })
     public PagedModel<OrderModel> getOrdersOfUser(@PathVariable("email") String email,
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
@@ -112,6 +137,13 @@ public class UserController {
         return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
+
+    /**
+     * Get method for receiving an order of a user by its id
+     * @param email - users email
+     * @param orderId - orders id
+     * @return order found
+     */
     @GetMapping(value = "/{email}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
     public OrderModel getOrderOfUser(@PathVariable("email") String email, @PathVariable("orderId") Long orderId){
         Order order;

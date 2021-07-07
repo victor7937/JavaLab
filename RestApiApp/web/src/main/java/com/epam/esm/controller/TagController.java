@@ -1,8 +1,6 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.service.TagService;
@@ -14,14 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller for REST operations with tags
- * Makes get, get by id, add, delete operations
+ * Makes get, get by id, add, delete and special calculating operations
  */
 @RestController
 @RequestMapping("/tags")
@@ -37,9 +32,12 @@ public class TagController {
         this.tagService = tagService;
     }
 
+
     /**
-     * Get method for receiving list of all tags
-     * @return List of tags in JSON
+     * @param page current page
+     * @param size size of the page
+     * @param namePart part of the tags name for searching
+     * @return page with tags found
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
     public PagedModel<Tag> getTags(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
@@ -123,6 +121,10 @@ public class TagController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Get method for finding the most widely used tag of a user with the highest cost of all orders
+     * @return Tag that was found
+     */
     @GetMapping("/most-used-tag")
     Tag getMostUsedTagOfValuableCustomer() {
         return tagService.getMostUsedTagOfValuableCustomer();

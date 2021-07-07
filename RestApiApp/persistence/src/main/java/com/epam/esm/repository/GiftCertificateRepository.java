@@ -7,14 +7,16 @@ import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.RepositoryException;
 
 /**
- * Repository for manipulating certificate data in certificates-tag database
+ * Repository for manipulating certificate data in database
  */
 public interface GiftCertificateRepository {
 
     /**
      * Get gift certificates with some criteria
      * @param certificateCriteria - searching certificates criteria
-     * @return list of some certificates which match the criteria
+     * @param pageSize - size of one page
+     * @param pageNumber - number of a current page
+     * @return page with certificates which match the criteria
      */
     PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException;
 
