@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.OrderDTO;
 import com.epam.esm.dto.PagedDTO;
@@ -76,8 +77,9 @@ public class GiftCertificateController {
                                                               @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                               @RequestParam Map<String, String> criteriaParams) {
         PagedDTO<GiftCertificate> pagedDTO;
+        CertificateCriteria criteria = CertificateCriteria.createCriteria(criteriaParams);
         try {
-             pagedDTO = giftCertificateService.get(CertificateCriteria.createCriteria(criteriaParams), size, page);
+             pagedDTO = giftCertificateService.get(criteria, size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -90,7 +92,7 @@ public class GiftCertificateController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
 
-        return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
+        return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
     /**

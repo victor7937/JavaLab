@@ -6,10 +6,11 @@ import com.epam.esm.entity.User_;
 import org.apache.commons.lang3.EnumUtils;
 
 import javax.persistence.metamodel.SingularAttribute;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class UserCriteria {
+public class UserCriteria extends Criteria {
 
     private String namePart;
 
@@ -77,6 +78,20 @@ public class UserCriteria {
         RequestParams(String value) {
             this.value = value;
         }
+    }
+
+    @Override
+    public Map<String, String> getCriteriaAsMap(){
+        Map<String, String> paramsMap = new LinkedHashMap<>();
+        if (!namePart.isBlank()){
+            paramsMap.put(RequestParams.NAME.value, namePart);
+        }
+        if (!surnamePart.isBlank()){
+            paramsMap.put( RequestParams.SURNAME.value, surnamePart);
+        }
+        paramsMap.put(RequestParams.ORDER.value, sortingOrder.toString().toLowerCase());
+        paramsMap.put(RequestParams.SORT.value, sortingField.toString().toLowerCase());
+        return paramsMap;
     }
 
 }

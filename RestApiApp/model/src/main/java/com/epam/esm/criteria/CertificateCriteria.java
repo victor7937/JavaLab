@@ -8,17 +8,15 @@ import org.apache.commons.lang3.math.NumberUtils;
 import javax.persistence.metamodel.SingularAttribute;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Criteria for searching gift certificates
  */
-public class CertificateCriteria {
+public class CertificateCriteria extends Criteria {
 
-    private static final String MIN_DATE_TIME = "2021-06-01T00:00:00";
+    private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
+    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.now();
 
     private Set<String> tagNames;
 
@@ -48,8 +46,8 @@ public class CertificateCriteria {
         this.order = order.orElse(SortingOrder.ASC);
         this.minPrice = minPrice.orElse(0.0f);
         this.maxPrice = maxPrice.orElse(Float.MAX_VALUE);
-        this.minCreateDate = minDate.orElse(LocalDateTime.parse(MIN_DATE_TIME));
-        this.maxCreateDate = maxDate.orElse(LocalDateTime.now());
+        this.minCreateDate = minDate.orElse(MIN_DATE_TIME);
+        this.maxCreateDate = maxDate.orElse(MAX_DATE_TIME);
     }
 
     public static CertificateCriteria createCriteria(Map<String, String> criteriaParams) {
@@ -153,6 +151,36 @@ public class CertificateCriteria {
         RequestParams(String value) {
             this.value = value;
         }
+    }
+
+    @Override
+    public Map<String, String> getCriteriaAsMap() {
+        Map<String, String> paramsMap = new LinkedHashMap<>();
+        if (isTagAdded()){
+            paramsMap.put(RequestParams.TAGS.value, String.join(",", tagNames));
+        }
+        if (!namePart.isBlank()){
+            paramsMap.put(RequestParams.NAME_PART.value, namePart);
+        }
+        if (!descriptionPart.isBlank()){
+            paramsMap.put(RequestParams.DESCRIPTION_PART.value, descriptionPart);
+        }
+        if (minPrice != 0.0f) {
+            paramsMap.put(RequestParams.PRICE_GTE.value, minPrice.toString());
+        }
+        if (maxPrice != Float.MAX_VALUE) {
+            paramsMap.put(RequestParams.PRICE_LTE.value, maxPrice.toString());
+        }
+
+        if (!minCreateDate.isEqual(MIN_DATE_TIME)) {
+            paramsMap.put(RequestParams.CREATE_GTE.value, minCreateDate.toString());
+        }
+        if (!maxCreateDate.isEqual(MAX_DATE_TIME)) {
+            paramsMap.put(RequestParams.CREATE_LTE.value, maxCreateDate.toString());
+        }
+        paramsMap.put(RequestParams.ORDER.value, order.toString().toLowerCase());
+        paramsMap.put(RequestParams.SORT.value, field.toString().toLowerCase());
+        return paramsMap;
     }
 
     @Override

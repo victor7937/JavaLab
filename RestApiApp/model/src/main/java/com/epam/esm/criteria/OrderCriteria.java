@@ -8,12 +8,14 @@ import org.apache.commons.lang3.math.NumberUtils;
 import javax.persistence.metamodel.SingularAttribute;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class OrderCriteria {
+public class OrderCriteria extends Criteria{
 
-    private static final String MIN_DATE_TIME = "2021-06-01T00:00:00";
+    private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
+    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.now();
 
     private SortingField sortingField;
 
@@ -33,8 +35,8 @@ public class OrderCriteria {
         this.sortingOrder = sortingOrder.orElse(SortingOrder.ASC);
         this.minCost = minCost.orElse(0.0f);
         this.maxCost = maxCost.orElse(Float.MAX_VALUE);
-        this.minTime = minTime.orElse(LocalDateTime.parse(MIN_DATE_TIME));
-        this.maxTime = maxTime.orElse(LocalDateTime.now());
+        this.minTime = minTime.orElse(MIN_DATE_TIME);
+        this.maxTime = maxTime.orElse(MAX_DATE_TIME);
 
     }
 
@@ -99,6 +101,7 @@ public class OrderCriteria {
         return maxTime;
     }
 
+
     public enum SortingField {
         ID(Order_.id), COST(Order_.cost), TIME(Order_.timeOfPurchase);
 
@@ -118,6 +121,28 @@ public class OrderCriteria {
         RequestParams(String value) {
             this.value = value;
         }
+    }
+
+    @Override
+    public Map<String, String> getCriteriaAsMap() {
+        Map<String, String> paramsMap = new LinkedHashMap<>();
+
+        if (minCost != 0.0f) {
+            paramsMap.put(RequestParams.COST_GTE.value, minCost.toString());
+        }
+        if (maxCost != Float.MAX_VALUE) {
+            paramsMap.put(RequestParams.COST_LTE.value, maxCost.toString());
+        }
+
+        if (!minTime.isEqual(MIN_DATE_TIME)) {
+            paramsMap.put(RequestParams.TIME_GTE.value, minTime.toString());
+        }
+        if (!maxTime.isEqual(MAX_DATE_TIME)) {
+            paramsMap.put(RequestParams.TIME_LTE.value, maxTime.toString());
+        }
+        paramsMap.put(RequestParams.ORDER.value, sortingOrder.toString().toLowerCase());
+        paramsMap.put(RequestParams.SORT.value, sortingField.toString().toLowerCase());
+        return paramsMap;
     }
 
 }

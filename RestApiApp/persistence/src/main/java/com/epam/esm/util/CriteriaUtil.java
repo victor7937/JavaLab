@@ -27,5 +27,5 @@ public class CriteriaUtil {
             criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
         }
     }
-    
+
 }

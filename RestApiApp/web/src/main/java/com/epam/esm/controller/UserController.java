@@ -18,14 +18,18 @@ import com.epam.esm.service.UserService;
 import com.epam.esm.util.StatusCodeGenerator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -62,12 +66,13 @@ public class UserController {
      * @return Page of users
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    public PagedModel<UserModel> getAllUsers( @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
-                                              @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
-                                              @RequestParam Map<String, String> criteriaParams){
+    public PagedModel<UserModel> getUsers(@RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                          @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                          @RequestParam Map<String, String> criteriaParams){
         PagedDTO<User> pagedDTO;
+        UserCriteria criteria = UserCriteria.createCriteria(criteriaParams);
         try {
-            pagedDTO = userService.get(UserCriteria.createCriteria(criteriaParams), size, page);
+            pagedDTO = userService.get(criteria, size, page);
         } catch (IncorrectPageServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -81,7 +86,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
 
-        return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
+        return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
     /**
@@ -119,9 +124,9 @@ public class UserController {
                                                   @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                   @RequestParam Map<String, String> criteriaParams){
         PagedDTO<Order> pagedDTO;
-
+        OrderCriteria criteria = OrderCriteria.createCriteria(criteriaParams);
         try {
-           pagedDTO = orderService.getOrdersOfUser(email, OrderCriteria.createCriteria(criteriaParams), size, page);
+           pagedDTO = orderService.getOrdersOfUser(email, criteria, size, page);
         } catch (NotFoundServiceException | IncorrectPageServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -134,7 +139,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
 
-        return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata());
+        return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
 
@@ -159,5 +164,6 @@ public class UserController {
         }
         return orderAssembler.toModel(order);
     }
+
     
 }

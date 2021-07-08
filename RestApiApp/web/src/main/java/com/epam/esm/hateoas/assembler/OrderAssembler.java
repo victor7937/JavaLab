@@ -2,25 +2,30 @@ package com.epam.esm.hateoas.assembler;
 
 import com.epam.esm.controller.GiftCertificateController;
 import com.epam.esm.controller.UserController;
+import com.epam.esm.criteria.Criteria;
 import com.epam.esm.entity.Order;
 import com.epam.esm.hateoas.model.OrderModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, OrderModel> {
+public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, OrderModel> implements Pageable<Order, OrderModel> {
 
     private final ModelMapper modelMapper;
+
+    private static final int FIRST = 1;
 
     @Autowired
     public OrderAssembler(ModelMapper modelMapper) {
@@ -41,7 +46,25 @@ public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, O
         return model;
     }
 
-    public PagedModel<OrderModel> toPagedModel(Collection<? extends Order> entities, PagedModel.PageMetadata metadata) {
-        return PagedModel.of(entities.stream().map(this::toModel).collect(Collectors.toList()), metadata);
+    @Override
+    public PagedModel<OrderModel> toPagedModel(Collection<? extends Order> entities, PagedModel.PageMetadata metadata, Criteria criteria) {
+        PagedModel<OrderModel> pagedModel = PagedModel.of(entities.stream().map(this::toModel).collect(Collectors.toList()), metadata);
+        Order order = entities.stream().findAny().get();
+        addToPagesLinks(pagedModel, order.getUser().getEmail(), metadata,criteria.getCriteriaAsMap());
+        return pagedModel;
+    }
+
+    private void addToPagesLinks(PagedModel<OrderModel> pagedModel, String email, PagedModel.PageMetadata metadata , Map<String, String> params){
+        int size = (int) metadata.getSize();
+        int number = (int) metadata.getNumber();
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, number, params)).withRel(IanaLinkRelations.CURRENT));
+        if (metadata.getNumber() < metadata.getTotalPages()){
+            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser( email, size, number + FIRST, params)).withRel(IanaLinkRelations.NEXT));
+        }
+        if (metadata.getNumber() != FIRST){
+            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, number - FIRST, params)).withRel(IanaLinkRelations.PREV));
+        }
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser( email, size, FIRST, params)).withRel(IanaLinkRelations.FIRST));
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, (int) metadata.getTotalPages(), params)).withRel(IanaLinkRelations.LAST));
     }
 }
