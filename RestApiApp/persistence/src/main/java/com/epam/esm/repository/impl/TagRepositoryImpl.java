@@ -50,13 +50,12 @@ public class TagRepositoryImpl implements TagRepository{
     public PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws RepositoryException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Tag> criteriaQuery = criteriaBuilder.createQuery(Tag.class);
-
         Root<Tag> tagRoot = criteriaQuery.from(Tag.class);
         Predicate conditions = criteriaBuilder.conjunction();
         criteriaQuery.select(tagRoot).distinct(true);
 
         if (!namePart.isBlank()){
-            conditions = criteriaBuilder.and(conditions, createNamePartPredicate(namePart, tagRoot));
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(tagRoot.get(Tag_.name),"%" + namePart + "%"));
         }
 
         Long count = CriteriaUtil.getResultsCount(entityManager, conditions, Tag.class);
@@ -73,7 +72,6 @@ public class TagRepositoryImpl implements TagRepository{
         TypedQuery<Tag> typedQuery = entityManager.createQuery(criteriaQuery);
 
         List<Tag> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize).setMaxResults(pageSize).getResultList();
-
         return new PagedDTO<>(resultList, metadata);
     }
 
@@ -127,10 +125,7 @@ public class TagRepositoryImpl implements TagRepository{
         return typedQuery.getSingleResult() > 0;
     }
 
-    private Predicate createNamePartPredicate(String name, Root<Tag> tagRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        return criteriaBuilder.like(tagRoot.get(Tag_.name),"%" + name + "%");
-    }
+
 
 
 }

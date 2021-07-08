@@ -42,19 +42,17 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @Override
     @Transactional
-    public PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException {
+    public PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
-
         Root<GiftCertificate> gcRoot = criteriaQuery.from(GiftCertificate.class);
         Predicate conditions = criteriaBuilder.conjunction();
         criteriaQuery.select(gcRoot).distinct(true);
 
-
-        if (certificateCriteria.isTagAdded()){
+        if (criteria.isTagAdded()){
             boolean areAllTagsValid = true;
             try {
-                conditions = criteriaBuilder.and(conditions, createTagsMatchingPredicate(certificateCriteria, gcRoot));
+                conditions = criteriaBuilder.and(conditions, createTagsMatchingPredicate(criteria, gcRoot));
             } catch (DataNotExistRepositoryException e){
                 areAllTagsValid = false;
             }
@@ -62,14 +60,8 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
                 return new PagedDTO<>();
             }
         }
-        if (!certificateCriteria.getNamePart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, createNamePartPredicate(certificateCriteria, gcRoot));
-        }
-        if (!certificateCriteria.getDescriptionPart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, createDescriptionPartPredicate(certificateCriteria, gcRoot));
-        }
-        conditions = criteriaBuilder.and(conditions, createPriceBetweenPredicate(certificateCriteria, gcRoot));
-        conditions = criteriaBuilder.and(conditions, createDateBetweenPredicate(certificateCriteria, gcRoot));
+
+        conditions = criteriaBuilder.and(conditions, createPredicates(criteria, gcRoot));
 
         Long count = CriteriaUtil.getResultsCount(entityManager, conditions, GiftCertificate.class);
         if (count == 0L){
@@ -83,15 +75,10 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
         criteriaQuery.where(conditions);
 
-        Path<?> sortPath = gcRoot.get(certificateCriteria.getField().attribute);
-        if (certificateCriteria.getOrder() == SortingOrder.DESC) {
-            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
-        } else {
-            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
-        }
+        CriteriaUtil.applySortingParams(entityManager, gcRoot, criteriaQuery, criteria.getField().attribute,
+                criteria.getOrder());
 
         TypedQuery<GiftCertificate> typedQuery = entityManager.createQuery(criteriaQuery);
-
         List<GiftCertificate> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
                 .setMaxResults(pageSize)
                 .getResultList();
@@ -147,6 +134,25 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         return current;
     }
 
+    private Predicate createPredicates(CertificateCriteria criteria, Root<GiftCertificate> gcRoot){
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Predicate conditions = criteriaBuilder.conjunction();
+        if (!criteria.getNamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%"
+                    + criteria.getNamePart() + "%"));
+        }
+        if (!criteria.getDescriptionPart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(gcRoot.get(GiftCertificate_.description),"%"
+                    + criteria.getDescriptionPart() + "%"));
+        }
+        conditions = criteriaBuilder.and(conditions, criteriaBuilder.between(gcRoot.get(GiftCertificate_.price),
+                criteria.getMinPrice(), criteria.getMaxPrice()));
+        conditions = criteriaBuilder.and(conditions,  criteriaBuilder.between(gcRoot.get(GiftCertificate_.createDate),
+                criteria.getMinCreateDate(), criteria.getMaxCreateDate()));
+
+        return conditions;
+    }
+
     private Predicate createTagsMatchingPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) throws DataNotExistRepositoryException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         Expression<Set<Tag>> tags = gcRoot.get(GiftCertificate_.tags);
@@ -160,37 +166,5 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         }
         return tagsPredicate;
     }
-
-    private Predicate createNamePartPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        return criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%" + criteria.getNamePart() + "%");
-    }
-
-    private Predicate createDescriptionPartPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        return criteriaBuilder.like(gcRoot.get(GiftCertificate_.description),"%" + criteria.getDescriptionPart() + "%");
-    }
-
-    private Predicate createPriceBetweenPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        Predicate conjunction = criteriaBuilder.conjunction();
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.ge(gcRoot.get(GiftCertificate_.price), criteria.getMinPrice()));
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.le(gcRoot.get(GiftCertificate_.price), criteria.getMaxPrice()));
-        return conjunction;
-    }
-
-    private Predicate createDateBetweenPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        Predicate conjunction = criteriaBuilder.conjunction();
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.greaterThanOrEqualTo(gcRoot.get(GiftCertificate_.createDate),
-                criteria.getMinCreateDate()));
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.lessThanOrEqualTo(gcRoot.get(GiftCertificate_.createDate),
-                criteria.getMaxCreateDate()));
-        return conjunction;
-    }
-
-
-
-
 
 }

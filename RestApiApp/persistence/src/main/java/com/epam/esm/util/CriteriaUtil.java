@@ -1,9 +1,10 @@
 package com.epam.esm.util;
 
+import com.epam.esm.criteria.SortingOrder;
+
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
+import javax.persistence.metamodel.SingularAttribute;
 
 public class CriteriaUtil {
 
@@ -15,4 +16,16 @@ public class CriteriaUtil {
         cq.where(conditions);
         return entityManager.createQuery(cq).getSingleResult();
     }
+
+    public static <T> void applySortingParams(EntityManager entityManager, Root<T> root, CriteriaQuery<T> criteriaQuery,
+                                            SingularAttribute<T,?> attribute, SortingOrder order){
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Path<?> sortPath = root.get(attribute);
+        if (order == SortingOrder.DESC) {
+            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
+        } else {
+            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
+        }
+    }
+    
 }

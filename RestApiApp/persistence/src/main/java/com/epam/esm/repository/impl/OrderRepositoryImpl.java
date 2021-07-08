@@ -1,5 +1,6 @@
 package com.epam.esm.repository.impl;
 
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.criteria.SortingOrder;
 import com.epam.esm.dto.PagedDTO;
@@ -51,16 +52,12 @@ public class OrderRepositoryImpl implements OrderRepository {
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Order> criteriaQuery = criteriaBuilder.createQuery(Order.class);
-
-
         Root<Order> orderRoot = criteriaQuery.from(Order.class);
         Join<Order, User> orderJoin = orderRoot.join(Order_.user);
         Predicate conditions = criteriaBuilder.equal(orderJoin.get(User_.email), userEmail);
         criteriaQuery.select(orderRoot).distinct(true);
 
-        conditions = criteriaBuilder.and(conditions, createCostBetweenPredicate(criteria, orderRoot));
-        conditions = criteriaBuilder.and(conditions, createTimeBetweenPredicate(criteria, orderRoot));
-
+        conditions = criteriaBuilder.and(conditions, createPredicates(criteria, orderRoot));
 
         CriteriaQuery<Long> cq = criteriaBuilder.createQuery(Long.class);
         cq.select(criteriaBuilder.count(cq.from(Order.class).join(Order_.user)));
@@ -79,15 +76,10 @@ public class OrderRepositoryImpl implements OrderRepository {
 
         criteriaQuery.where(conditions);
 
-        Path<?> sortPath = orderRoot.get(criteria.getSortingField().attribute);
-        if (criteria.getSortingOrder() == SortingOrder.DESC) {
-            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
-        } else {
-            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
-        }
+        CriteriaUtil.applySortingParams(entityManager, orderRoot, criteriaQuery, criteria.getSortingField().attribute,
+                criteria.getSortingOrder());
 
         TypedQuery<Order> typedQuery = entityManager.createQuery(criteriaQuery);
-
         List<Order> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
                 .setMaxResults(pageSize)
                 .getResultList();
@@ -103,21 +95,14 @@ public class OrderRepositoryImpl implements OrderRepository {
                 .findAny().orElseThrow(DataNotExistRepositoryException::new);
     }
 
-    private Predicate createCostBetweenPredicate(OrderCriteria criteria, Root<Order> orderRoot) {
+    private Predicate createPredicates(OrderCriteria criteria, Root<Order> orderRoot){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        Predicate conjunction = criteriaBuilder.conjunction();
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.ge(orderRoot.get(Order_.cost), criteria.getMinCost()));
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.le(orderRoot.get(Order_.cost), criteria.getMaxCost()));
-        return conjunction;
+        Predicate conditions = criteriaBuilder.conjunction();
+        conditions = criteriaBuilder.and(conditions, criteriaBuilder.between(orderRoot.get(Order_.cost),
+                criteria.getMinCost(), criteria.getMaxCost()));
+        conditions = criteriaBuilder.and(conditions, criteriaBuilder.between(orderRoot.get(Order_.timeOfPurchase),
+                criteria.getMinTime(), criteria.getMaxTime()));
+        return conditions;
     }
 
-    private Predicate createTimeBetweenPredicate(OrderCriteria criteria, Root<Order> orderRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        Predicate conjunction = criteriaBuilder.conjunction();
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.greaterThanOrEqualTo(orderRoot.get(Order_.timeOfPurchase),
-                criteria.getMinTime()));
-        conjunction = criteriaBuilder.and(conjunction, criteriaBuilder.lessThanOrEqualTo(orderRoot.get(Order_.timeOfPurchase),
-                criteria.getMaxTime()));
-        return conjunction;
-    }
 }

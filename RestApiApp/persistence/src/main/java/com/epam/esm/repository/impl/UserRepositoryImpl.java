@@ -37,20 +37,13 @@ public class UserRepositoryImpl implements UserRepository {
     public PagedDTO<User> getByCriteria(UserCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
-
         Root<User> userRoot = criteriaQuery.from(User.class);
         Predicate conditions = criteriaBuilder.conjunction();
         criteriaQuery.select(userRoot).distinct(true);
 
-        if (!criteria.getNamePart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, createNamePartPredicate(criteria, userRoot));
-        }
-        if (!criteria.getSurnamePart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, createSurnamePartPredicate(criteria, userRoot));
-        }
+        conditions = criteriaBuilder.and(conditions, createPredicates(criteria, userRoot));
 
         Long count = CriteriaUtil.getResultsCount(entityManager, conditions, User.class);
-
         if (count == 0L){
             return new PagedDTO<>();
         }
@@ -59,20 +52,13 @@ public class UserRepositoryImpl implements UserRepository {
         if (metadata.getTotalPages() < metadata.getNumber()) {
             throw new IncorrectPageRepositoryException();
         }
-
         criteriaQuery.where(conditions);
 
-        Path<?> sortPath = userRoot.get(criteria.getSortingField().attribute);
-        if (criteria.getSortingOrder() == SortingOrder.DESC) {
-            criteriaQuery.orderBy(criteriaBuilder.desc(sortPath));
-        } else {
-            criteriaQuery.orderBy(criteriaBuilder.asc(sortPath));
-        }
+        CriteriaUtil.applySortingParams(entityManager, userRoot, criteriaQuery, criteria.getSortingField().attribute,
+                criteria.getSortingOrder());
 
         TypedQuery<User> typedQuery = entityManager.createQuery(criteriaQuery);
-
         List<User> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize).setMaxResults(pageSize).getResultList();
-
         return new PagedDTO<>(resultList, metadata);
 
     }
@@ -96,14 +82,16 @@ public class UserRepositoryImpl implements UserRepository {
         return typedQuery.getSingleResult() > 0;
     }
 
-    private Predicate createNamePartPredicate(UserCriteria criteria, Root<User> userRoot) {
+    private Predicate createPredicates(UserCriteria criteria, Root<User> userRoot){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        return criteriaBuilder.like(userRoot.get(User_.name),criteria.getNamePart() + "%");
-    }
-
-    private Predicate createSurnamePartPredicate(UserCriteria criteria, Root<User> userRoot) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        return criteriaBuilder.like(userRoot.get(User_.surname),criteria.getSurnamePart() + "%");
+        Predicate conditions = criteriaBuilder.conjunction();
+        if (!criteria.getNamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.name),criteria.getNamePart() + "%"));
+        }
+        if (!criteria.getSurnamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.surname),criteria.getSurnamePart() + "%"));
+        }
+        return conditions;
     }
 
 }
