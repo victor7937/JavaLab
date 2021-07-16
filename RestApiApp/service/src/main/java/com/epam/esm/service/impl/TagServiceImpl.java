@@ -1,5 +1,6 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.TagRepository;
@@ -8,34 +9,47 @@ import com.epam.esm.validator.ServiceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
-public class TagServiceImpl implements TagService {
+public class TagServiceImpl implements TagService{
 
-    private static final String INVALID_ID_MSG = "Tag id is invalid";
-    private static final String INCORRECT_TAG_MSG = "Tag data is incorrect";
+
     private final TagRepository tagRepository;
-    private final ServiceValidator<Tag, Integer> validator;
+    private final ServiceValidator<Tag> validator;
 
     private static final String NOT_EXIST_MSG = "Tag id with number %s doesn't exist";
     private static final String ALREADY_EXIST_MSG = "Tag with name %s already exists";
+    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
+    private static final String INVALID_PAGE_PARAMS_MSG = "Page params are invalid";
+    private static final String INVALID_ID_MSG = "Tag id is invalid";
+    private static final String INCORRECT_TAG_MSG = "Tag data is incorrect";
 
 
     @Autowired
-    public TagServiceImpl(TagRepository tagRepository, ServiceValidator<Tag, Integer> validator) {
+    public TagServiceImpl(TagRepository tagRepository, ServiceValidator<Tag> validator) {
         this.tagRepository = tagRepository;
         this.validator = validator;
     }
 
     @Override
-    public List<Tag> getAll() {
-        return tagRepository.getAll();
+    public PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException {
+        PagedDTO<Tag> pagedDTO;
+        if (!validator.isPageParamsValid(pageSize, pageNumber)){
+            throw new IncorrectDataServiceException(INVALID_PAGE_PARAMS_MSG);
+        }
+        try {
+            pagedDTO = tagRepository.get(namePart, pageSize, pageNumber);
+        } catch (IncorrectPageRepositoryException e) {
+            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+        } catch (RepositoryException e){
+            throw new ServiceException(e);
+        }
+        return pagedDTO;
     }
 
     @Override
-    public Tag getById(Integer id) throws ServiceException {
-        if (!validator.isIdValid(id)){
+    public Tag getById(Long id) throws ServiceException {
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
         Tag tag;
@@ -64,8 +78,8 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public void delete(Integer id) throws ServiceException {
-        if (!validator.isIdValid(id)){
+    public void delete(Long id) throws ServiceException {
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
         try {
@@ -75,5 +89,10 @@ public class TagServiceImpl implements TagService {
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
+    }
+
+    @Override
+    public Tag getMostUsedTagOfValuableCustomer() {
+        return tagRepository.getMostUsedTagOfValuableCustomer();
     }
 }

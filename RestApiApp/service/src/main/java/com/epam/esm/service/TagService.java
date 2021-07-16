@@ -1,5 +1,6 @@
 package com.epam.esm.service;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.ServiceException;
 
@@ -11,10 +12,14 @@ import java.util.List;
 public interface TagService {
 
     /**
-     * Get all tags
-     * @return list of tags
+     * Gets page with tags from data source
+     * @param namePart - part of tags name for searching
+     * @param pageSize - size of one page
+     * @param pageNumber - number of a current page
+     * @return page with tags found
+     * @throws ServiceException if pagination params are incorrect or some troubles in data source were happened
      */
-    List<Tag> getAll();
+    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException;
 
     /**
      * Get one tag if id is correct
@@ -22,7 +27,7 @@ public interface TagService {
      * @return tag found
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    Tag getById(Integer id) throws ServiceException;
+    Tag getById(Long id) throws ServiceException;
 
     /**
      * Add a new tag if such tag is not exist in data source
@@ -37,5 +42,12 @@ public interface TagService {
      * @param id - id of the tag for deleting
      * @throws ServiceException if id is incorrect or some troubles in data source were happened
      */
-    void delete(Integer id) throws ServiceException;
+    void delete(Long id) throws ServiceException;
+
+
+    /**
+     * Gets the most widely used tag of a user with the highest cost of all orders
+     * @return Tag found
+     */
+    Tag getMostUsedTagOfValuableCustomer();
 }

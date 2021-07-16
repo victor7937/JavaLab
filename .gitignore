@@ -6,3 +6,8 @@ build
 log/
 target/
 TestSmth.java
+.mvn
+mvnw
+mvnw.cmd
+TagsGenerator.java
+

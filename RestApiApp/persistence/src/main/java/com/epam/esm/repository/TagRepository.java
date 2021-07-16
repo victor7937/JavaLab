@@ -1,20 +1,24 @@
 package com.epam.esm.repository;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.RepositoryException;
 
-import java.util.List;
 
 /**
- * Repository for manipulating tag data in certificates-tag database
+ * Repository for manipulating tag data in database
  */
 public interface TagRepository {
 
     /**
-     * Get all tags from database
-     * @return list of all tags
+     * Gets page with tags form database by name part
+     * @param namePart - part of tags name for searching
+     * @param pageSize - size of one page
+     * @param pageNumber - number of a current page
+     * @return page with tags which match the name part
+     * @throws RepositoryException if no such page or some troubles in database were happened
      */
-    List<Tag> getAll();
+    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get one tag if id is correct from database
@@ -22,8 +26,11 @@ public interface TagRepository {
      * @return tag found
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    Tag getById(int id) throws RepositoryException;
+    Tag getById(Long id) throws RepositoryException;
 
+    Tag getByName(String name);
+
+    boolean isTagExists(String name);
 
     /**
      * Add a new tag if such tag is not exist in database
@@ -38,5 +45,12 @@ public interface TagRepository {
      * @param id - id of gift certificate for deleting
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    void delete(int id) throws RepositoryException;
+    void delete(Long id) throws RepositoryException;
+
+    /**
+     * Gets the most widely used tag of a user with the highest cost of all orders from database
+     * @return tag found
+     */
+    Tag getMostUsedTagOfValuableCustomer ();
+
 }

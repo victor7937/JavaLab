@@ -1,181 +1,170 @@
 package com.epam.esm.repository.impl;
 
-import com.epam.esm.entity.Criteria;
-import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Tag;
+import com.epam.esm.criteria.CertificateCriteria;
+import com.epam.esm.criteria.SortingOrder;
+import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.entity.*;
 import com.epam.esm.exception.DataNotExistRepositoryException;
+import com.epam.esm.exception.IncorrectPageRepositoryException;
 import com.epam.esm.exception.PartialUpdateException;
 import com.epam.esm.exception.RepositoryException;
-import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.repository.GiftCertificateRepository;
-import com.epam.esm.util.PartialUpdateQueryCreator;
+
+import com.epam.esm.repository.TagRepository;
+import com.epam.esm.util.CriteriaUtil;
+import com.epam.esm.util.PartialUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.text.MessageFormat;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.UnaryOperator;
 
 
 @Repository
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
-    private static final String SQL_GET_ALL = "SELECT * FROM gift_certificate WHERE name LIKE ''%{0}%'' ORDER BY {1} {2}";
-    private static final String SQL_GET_ALL_WITH_TAG_NAME = "SELECT g.id, g.name, g.description, g.price, g.duration," +
-            " g.create_date, g.last_update_date FROM gift_certificate g" +
-    " JOIN m2m_certificate_tag m2mct ON g.id = m2mct.cert_id" +
-    " JOIN tag t ON t.id = m2mct.tag_id WHERE t.name = ? AND g.name LIKE ''%{0}%'' ORDER BY g.{1} {2}";
+    private final EntityManager entityManager;
 
-    private static final String SQL_GET_BY_ID = "SELECT * FROM gift_certificate WHERE id = ?";
-
-    private static final String SQL_GET_TAGS_FOR_CERTIFICATE = "SELECT t.name, t.id FROM gift_certificate g" +
-    " JOIN m2m_certificate_tag m2mct ON g.id = m2mct.cert_id" +
-    " JOIN tag t ON t.id = m2mct.tag_id WHERE g.id = ?";
-
-    private static final String SQL_ADD_NEW_CERTIFICATE = "INSERT INTO gift_certificate(name, description, price, duration) VALUES(?,?,?,?)";
-
-    private static final String SQL_TAG_EXISTS = "SELECT EXISTS (SELECT 1 FROM tag WHERE tag.name = ?) AS tag_exists";
-
-    private static final String SQL_ADD_NEW_TAG = "INSERT INTO tag(name) VALUES(?)";
-
-    private static final String SQL_GET_TAG_ID = "SELECT id FROM tag WHERE name = ?";
-
-    private static final String SQL_ADD_TO_CERT_TAG_M2M = "INSERT INTO m2m_certificate_tag(cert_id, tag_id) VALUES(?,?)";
-
-    private static final String SQL_DELETE_FROM_CERT_TAG_M2M = "DELETE FROM m2m_certificate_tag WHERE cert_id = ? AND tag_id = ?";
-
-    private static final String SQL_DELETE_CERTIFICATE = "DELETE FROM gift_certificate WHERE id = ?";
-
-    private static final String UPDATE_QUERY_CONDITION = " WHERE id = ?";
-
-    private static final List<String> PARTIAL_UPDATE_FIELDS =  List.of("name", "description", "price", "duration");
-
-    private static final String ADDING_CERTIFICATE_FAIL_MSG = "Adding certificate fail";
-    private static final String CERTIFICATES_TABLE_NAME = "gift_certificate";
-
-    private final JdbcTemplate jdbcTemplate;
+    private final TagRepository tagRepository;
 
     @Autowired
-    public GiftCertificateRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public GiftCertificateRepositoryImpl(EntityManager entityManager, TagRepository tagRepository) {
+        this.entityManager = entityManager;
+        this.tagRepository = tagRepository;
     }
 
     @Override
-    public List<GiftCertificate> getByCriteria(Criteria criteria) {
-        UnaryOperator<String> insertParams = s -> MessageFormat.format(s, criteria.getNamePart(),
-                criteria.getField().toString().toLowerCase(), criteria.getOrder().toString());
+    @Transactional
+    public PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> gcRoot = criteriaQuery.from(GiftCertificate.class);
+        Predicate conditions = criteriaBuilder.conjunction();
+        criteriaQuery.select(gcRoot).distinct(true);
 
-        List<GiftCertificate> giftCertificateList;
-        if (criteria.isTagAdded()) {
-            giftCertificateList = jdbcTemplate.query(insertParams.apply(SQL_GET_ALL_WITH_TAG_NAME), new GiftCertificateMapper(),
-                    criteria.getTagName());
-        } else {
-            giftCertificateList = jdbcTemplate.query(insertParams.apply(SQL_GET_ALL), new GiftCertificateMapper());
+        if (criteria.isTagAdded()){
+            boolean areAllTagsValid = true;
+            try {
+                conditions = criteriaBuilder.and(conditions, createTagsMatchingPredicate(criteria, gcRoot));
+            } catch (DataNotExistRepositoryException e){
+                areAllTagsValid = false;
+            }
+            if (!areAllTagsValid) {
+                return new PagedDTO<>();
+            }
         }
-        giftCertificateList.forEach(cert -> cert.setTags(getTagsById(cert.getId())));
-        return giftCertificateList;
+
+        conditions = criteriaBuilder.and(conditions, createPredicates(criteria, gcRoot));
+
+        Long count = CriteriaUtil.getResultsCount(entityManager, conditions, GiftCertificate.class);
+        if (count == 0L){
+            return new PagedDTO<>();
+        }
+
+        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(pageSize, pageNumber, count);
+        if (metadata.getTotalPages() < metadata.getNumber()) {
+            throw new IncorrectPageRepositoryException();
+        }
+
+        criteriaQuery.where(conditions);
+
+        CriteriaUtil.applySortingParams(entityManager, gcRoot, criteriaQuery, criteria.getField().attribute,
+                criteria.getOrder());
+
+        TypedQuery<GiftCertificate> typedQuery = entityManager.createQuery(criteriaQuery);
+        List<GiftCertificate> resultList = typedQuery.setFirstResult((pageNumber - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+
+       return new PagedDTO<>(resultList, metadata);
     }
 
     @Override
-    public GiftCertificate getById(int id) throws RepositoryException {
-        GiftCertificate giftCertificate = jdbcTemplate.query(SQL_GET_BY_ID, new GiftCertificateMapper(), id).stream().findAny()
-                .orElseThrow(DataNotExistRepositoryException::new);
-        giftCertificate.setTags(getTagsById(giftCertificate.getId()));
+    @Transactional
+    public GiftCertificate getById(Long id) throws RepositoryException {
+        return Optional.ofNullable(entityManager.find(GiftCertificate.class, id)).orElseThrow(DataNotExistRepositoryException::new);
+    }
+
+    @Override
+    @Transactional
+    public GiftCertificate add(CertificateDTO certificateDTO) throws RepositoryException {
+        GiftCertificate giftCertificate = new GiftCertificate(certificateDTO.getName(), certificateDTO.getDescription(),
+                certificateDTO.getPrice(), certificateDTO.getDuration());
+        Set<Tag> tagsForAdding = certificateDTO.getTags();
+        tagsForAdding.stream().filter(t -> !tagRepository.isTagExists(t.getName())).forEach(giftCertificate::addTag);
+
+        entityManager.persist(giftCertificate);
+        tagsForAdding.stream().filter(t -> !giftCertificate.getTags().contains(t)).map(t -> tagRepository.getByName(t.getName()))
+                .forEach(giftCertificate::addTag);
+
         return giftCertificate;
     }
 
     @Override
-    @Transactional("transactionManager")
-    public GiftCertificate add(GiftCertificate giftCertificate) throws RepositoryException {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        AtomicInteger i = new AtomicInteger();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_ADD_NEW_CERTIFICATE, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(i.incrementAndGet(), giftCertificate.getName());
-            ps.setString(i.incrementAndGet(), giftCertificate.getDescription());
-            ps.setFloat(i.incrementAndGet(), giftCertificate.getPrice());
-            ps.setInt(i.incrementAndGet(), giftCertificate.getDuration());
-            return ps;
-        }, keyHolder);
-        System.out.println(keyHolder.getKeys());
-        int certificateId = (Integer) Optional.of(keyHolder.getKeys().size() > 1 ? keyHolder.getKeys().get("id") : keyHolder.getKey().intValue())
-                .orElseThrow(() -> new RepositoryException(ADDING_CERTIFICATE_FAIL_MSG));
-
-        giftCertificate.getTags().forEach(tag -> connectTagWithCertificate(tag, certificateId));
-        return getById(certificateId);
+    @Transactional
+    public void delete(Long id) throws RepositoryException {
+        GiftCertificate giftCertificate = getById(id);
+        entityManager.remove(giftCertificate);
     }
 
     @Override
-    public void delete(int id) throws RepositoryException {
-        int rowsAffected = jdbcTemplate.update(SQL_DELETE_CERTIFICATE, id);
-        if (rowsAffected == 0){
-            throw new DataNotExistRepositoryException();
-        }
-    }
-
-    @Override
-    @Transactional("transactionManager")
-    public GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws RepositoryException {
+    @Transactional
+    public GiftCertificate update(CertificateDTO modified, Long id) throws RepositoryException {
+        GiftCertificate current = getById(id);
+        PartialUpdater<GiftCertificate, CertificateDTO> partialUpdater = new PartialUpdater<>(current, modified,
+                List.of(GiftCertificate_.NAME, GiftCertificate_.DESCRIPTION, GiftCertificate_.PRICE, GiftCertificate_.DURATION));
         try {
-            PartialUpdateQueryCreator<GiftCertificate> queryCreator = new PartialUpdateQueryCreator<>(current, modified,
-                    PARTIAL_UPDATE_FIELDS);
-            queryCreator.generatePartialUpdateData();
-
-            if (queryCreator.isUpdated()){
-                String updateQuery = queryCreator.createQuery(CERTIFICATES_TABLE_NAME) + UPDATE_QUERY_CONDITION;
-                List<Object> updatedValues = queryCreator.getValues();
-                updatedValues.add(current.getId());
-                jdbcTemplate.update(updateQuery, updatedValues.toArray());
-            }
-
+            partialUpdater.generatePartialUpdateData();
         } catch (PartialUpdateException e) {
             throw new RepositoryException(e);
         }
 
-        modified.getTags().stream()
-                .filter(tag -> !current.getTags().contains(tag))
-                .forEach(tag -> connectTagWithCertificate(tag, current.getId()));
+        modified.getTags().stream().filter(tag -> !current.getTags().contains(tag))
+                .map(t -> tagRepository.isTagExists(t.getName()) ? tagRepository.getByName(t.getName()) : t)
+                .forEach(current::addTag);
+        current.getTags().retainAll(modified.getTags());
 
-        current.getTags().stream()
-                .filter(tag -> !modified.getTags().contains(tag))
-                .forEach(tag -> unlinkTagFromCertificate(tag, current.getId()));
-
-        return getById(current.getId());
-
+        return current;
     }
 
-    private Set<Tag> getTagsById(int id){
-        return new LinkedHashSet<>(jdbcTemplate.query(SQL_GET_TAGS_FOR_CERTIFICATE, new BeanPropertyRowMapper<>(Tag.class), id));
-    }
-
-    private boolean isTagExists(Tag tag) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(SQL_TAG_EXISTS, new SingleColumnRowMapper<>(Boolean.class),
-                tag.getName())).orElse(false);
-    }
-
-    private Integer getTagIdByName(String tagName){
-        return jdbcTemplate.queryForObject(SQL_GET_TAG_ID, new SingleColumnRowMapper<>(Integer.class), tagName);
-    }
-
-    private void connectTagWithCertificate(Tag tag, int certificateId){
-        if (!isTagExists(tag)) {
-            jdbcTemplate.update(SQL_ADD_NEW_TAG, tag.getName());
+    private Predicate createPredicates(CertificateCriteria criteria, Root<GiftCertificate> gcRoot){
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Predicate conditions = criteriaBuilder.conjunction();
+        if (!criteria.getNamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%"
+                    + criteria.getNamePart() + "%"));
         }
-        jdbcTemplate.update(SQL_ADD_TO_CERT_TAG_M2M, certificateId, getTagIdByName(tag.getName()));
+        if (!criteria.getDescriptionPart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(gcRoot.get(GiftCertificate_.description),"%"
+                    + criteria.getDescriptionPart() + "%"));
+        }
+        conditions = criteriaBuilder.and(conditions, criteriaBuilder.between(gcRoot.get(GiftCertificate_.price),
+                criteria.getMinPrice(), criteria.getMaxPrice()));
+        conditions = criteriaBuilder.and(conditions,  criteriaBuilder.between(gcRoot.get(GiftCertificate_.createDate),
+                criteria.getMinCreateDate(), criteria.getMaxCreateDate()));
+
+        return conditions;
     }
 
-    private void unlinkTagFromCertificate(Tag tag, int certificateId){
-        jdbcTemplate.update(SQL_DELETE_FROM_CERT_TAG_M2M, certificateId, getTagIdByName(tag.getName()));
+    private Predicate createTagsMatchingPredicate(CertificateCriteria criteria, Root<GiftCertificate> gcRoot) throws DataNotExistRepositoryException {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        Expression<Set<Tag>> tags = gcRoot.get(GiftCertificate_.tags);
+        Predicate tagsPredicate = criteriaBuilder.conjunction();
+        for (String name : criteria.getTagNames()){
+            Tag tag = tagRepository.getByName(name);
+            if (tag == null){
+                throw new DataNotExistRepositoryException();
+            }
+            tagsPredicate = criteriaBuilder.and(tagsPredicate, criteriaBuilder.isMember(tag, tags));
+        }
+        return tagsPredicate;
     }
-
 
 }

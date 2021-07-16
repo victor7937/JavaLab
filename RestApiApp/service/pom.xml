@@ -5,7 +5,7 @@
     <parent>
         <artifactId>RestApiApp</artifactId>
         <groupId>com.epam.esm</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -20,35 +20,29 @@
         <dependency>
             <groupId>com.epam.esm</groupId>
             <artifactId>model</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.epam.esm</groupId>
             <artifactId>persistence</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>3.11.1</version>
-            <scope>test</scope>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.7</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.11.1</version>
-            <scope>test</scope>
-        </dependency>
+
 
     </dependencies>
 
     <build>
         <pluginManagement>
             <plugins>
-
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M5</version>

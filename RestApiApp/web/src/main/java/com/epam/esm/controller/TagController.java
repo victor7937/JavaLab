@@ -1,23 +1,22 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.IncorrectDataServiceException;
+import com.epam.esm.exception.*;
 import com.epam.esm.service.TagService;
-import com.epam.esm.exception.AlreadyExistServiceException;
-import com.epam.esm.exception.NotFoundServiceException;
-import com.epam.esm.exception.ServiceException;
+import com.epam.esm.util.StatusCodeGenerator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 
 /**
  * Controller for REST operations with tags
- * Makes get, get by id, add, delete operations
+ * Makes get, get by id, add, delete and special calculating operations
  */
 @RestController
 @RequestMapping("/tags")
@@ -33,13 +32,32 @@ public class TagController {
         this.tagService = tagService;
     }
 
+
     /**
-     * Get method for receiving list of all tags
-     * @return List of tags in JSON
+     * @param page current page
+     * @param size size of the page
+     * @param namePart part of the tags name for searching
+     * @return page with tags found
      */
-    @GetMapping()
-    public List<Tag> getAllTags() {
-        return tagService.getAll();
+    @GetMapping(produces = { "application/prs.hal-forms+json" })
+    public PagedModel<Tag> getTags(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+                                   @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+                                   @RequestParam (name = "part", required = false, defaultValue = "") String namePart) {
+        PagedDTO<Tag> pagedDTO;
+        try {
+            pagedDTO = tagService.get(namePart, size, page);
+        } catch (IncorrectPageServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
+        } catch (ServiceException e){
+            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
+        }
+        if (pagedDTO.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
+        }
+        return PagedModel.of(pagedDTO.getPage(), pagedDTO.getPageMetadata());
     }
 
     /**
@@ -48,17 +66,17 @@ public class TagController {
      * @return tag found in JSON
      */
     @GetMapping("/{id}")
-    public Tag getTagById (@PathVariable("id") Integer id){
+    public Tag getTagById (@PathVariable("id") Long id){
         Tag tag;
         try {
             tag = tagService.getById(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return tag;
     }
@@ -73,12 +91,12 @@ public class TagController {
         try {
             tagService.add(tag);
         } catch (AlreadyExistServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.CONFLICT), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.CONFLICT, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -89,22 +107,27 @@ public class TagController {
      * @return OK response if tag was deleted
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTag (@PathVariable("id") Integer id){
+    public ResponseEntity<Object> deleteTag (@PathVariable("id") Long id){
         try {
             tagService.delete(id);
         } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.NOT_FOUND), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.BAD_REQUEST), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
             logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(generateStatusCode(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage(), e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    private int generateStatusCode(HttpStatus status){
-        return status.value() * 10 + 2;
+    /**
+     * Get method for finding the most widely used tag of a user with the highest cost of all orders
+     * @return Tag that was found
+     */
+    @GetMapping("/most-used-tag")
+    Tag getMostUsedTagOfValuableCustomer() {
+        return tagService.getMostUsedTagOfValuableCustomer();
     }
 
 }

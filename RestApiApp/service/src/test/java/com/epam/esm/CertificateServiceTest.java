@@ -1,13 +1,16 @@
 package com.epam.esm;
 
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.criteria.CertificateCriteria;
+import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.impl.GiftCertificateServiceImpl;
-import com.epam.esm.validator.CertificateValidator;
+import com.epam.esm.validator.impl.CertificateCriteriaValidator;
+import com.epam.esm.validator.impl.CertificateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,11 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.hateoas.PagedModel;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,34 +29,35 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CertificateServiceTest {
-    
+
     @Mock
     GiftCertificateRepository repository;
-    
+
     GiftCertificateService service;
 
-    final GiftCertificate certificateSample = new GiftCertificate("name","test GiftCertificate for adding",23.5f,2);
-    final GiftCertificate certificateSample2 = new GiftCertificate(1,"name","test GiftCertificate for adding",23.5f,2, LocalDateTime.now(), LocalDateTime.now());
+    final GiftCertificate certificateSample = new GiftCertificate("name","test GiftCertificate",23.5f,2);
+    final GiftCertificate certificateSample2 = new GiftCertificate(1L,"name","test GiftCertificate",23.5f,2, LocalDateTime.now(), LocalDateTime.now());
     final List<GiftCertificate> certificateListSample = List.of(
             new GiftCertificate("name1","test1",1.1f,1),
             new GiftCertificate("name2","test2",1.2f,2),
             new GiftCertificate("name3","test3",1.3f,3));
-    final Integer idSample = 1;
-    final Integer notExistingIdSample = 999;
+    final CertificateDTO certificateDTOSample = new CertificateDTO("name","test GiftCertificate",23.5f,2, new HashSet<>());
+    final Long idSample = 1L;
+    final Long notExistingIdSample = 999L;
 
     @BeforeEach
     void init(){
-        service = new GiftCertificateServiceImpl(repository, new CertificateValidator());
+        service = new GiftCertificateServiceImpl(repository, new CertificateValidator(), new CertificateCriteriaValidator());
     }
 
     @Nested
     class GettingByIdTests {
-        
+
         @Test
         void correctGettingByIdShouldReturnCertificate() throws RepositoryException, ServiceException {
             GiftCertificate expected = certificateSample;
             certificateSample.setId(idSample);
-            when(repository.getById(Mockito.anyInt())).thenReturn(expected);
+            when(repository.getById(Mockito.anyLong())).thenReturn(expected);
             assertEquals(expected, service.getById(idSample));
             verify(repository).getById(idSample);
         }
@@ -69,10 +72,10 @@ public class CertificateServiceTest {
         @Test
         void gettingWithIncorrectIdShouldRaiseException() throws RepositoryException {
             assertAll(
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getById(-1)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getById(-1L)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getById(null))
             );
-            verify(repository, never()).getById(any(Integer.class));
+            verify(repository, never()).getById(any(Long.class));
         }
     }
 
@@ -96,24 +99,34 @@ public class CertificateServiceTest {
         @Test
         void gettingWithIncorrectIdShouldRaiseException() throws RepositoryException {
             assertAll(
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(-1)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(-1L)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(null))
             );
-            verify(repository, never()).delete(any(Integer.class));
+            verify(repository, never()).delete(any(Long.class));
         }
     }
 
     @Nested
-    class GetAllTests {
+    class GetCertificatesTests {
 
         @Test
-        void correctGettingByCriteriaShouldReturnListOfGiftCertificates(){
-            List<GiftCertificate> expected = certificateListSample;
-            List<GiftCertificate> emptyList = Collections.emptyList();
-            doReturn(expected, emptyList).when(repository).getByCriteria(any(Criteria.class));
-            assertEquals(expected, service.get(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
-            assertEquals(emptyList ,service.get(Optional.of("someNotExistingTag"), Optional.empty(), Optional.empty(), Optional.empty()));
-            verify(repository, times(2)).getByCriteria(any(Criteria.class));
+        void correctGettingByCriteriaShouldReturnPagedDto() throws RepositoryException, ServiceException{
+            PagedDTO<GiftCertificate> expectedDto = new PagedDTO<>(certificateListSample, new PagedModel.PageMetadata(1,1,1));
+            PagedDTO<GiftCertificate> emptyDto = new PagedDTO<>();
+            doReturn(expectedDto, emptyDto).when(repository).getByCriteria(any(CertificateCriteria.class), anyInt(), anyInt());
+            assertEquals(expectedDto, service.get(CertificateCriteria.createCriteria(new HashMap<>()),1,1));
+            assertTrue(service.get(CertificateCriteria.createCriteria(new HashMap<>()),1,1).isEmpty());
+            verify(repository, times(2)).getByCriteria(any(CertificateCriteria.class), anyInt(), anyInt());
+        }
+
+        @Test
+        void gettingWithIncorrectPageParamsShouldRaiseException() throws RepositoryException {
+            assertAll(
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.get(CertificateCriteria.createCriteria(new HashMap<>()),-1,2)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.get(CertificateCriteria.createCriteria(new HashMap<>()),2,-1)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.get(CertificateCriteria.createCriteria(new HashMap<>()),0,0))
+            );
+            verify(repository, never()).getByCriteria(any(CertificateCriteria.class), anyInt(), anyInt());
         }
 
     }
@@ -122,31 +135,31 @@ public class CertificateServiceTest {
     class AddingTests {
         @Test
         void correctAddingNewGiftCertificateShouldNotRaiseException () throws RepositoryException, ServiceException {
-            GiftCertificate giftCertificateForReturn = certificateSample2;
-            when(repository.add(any(GiftCertificate.class))).thenReturn(giftCertificateForReturn);
-            assertEquals(giftCertificateForReturn, service.add(certificateSample));
-            verify(repository).add(any(GiftCertificate.class));
+            GiftCertificate giftCertificateForReturn = certificateSample;
+            when(repository.add(any(CertificateDTO.class))).thenReturn(giftCertificateForReturn);
+            assertEquals(giftCertificateForReturn, service.add(certificateDTOSample));
+            verify(repository).add(any(CertificateDTO.class));
         }
 
 
         @Test
         void addingGiftCertificateFailShouldThrowException() throws RepositoryException, ServiceException {
-            doThrow(new RepositoryException()).when(repository).add(any(GiftCertificate.class));
-            assertThrows(ServiceException.class, () -> service.add(certificateSample));
-            verify(repository).add(any(GiftCertificate.class));
+            doThrow(new RepositoryException()).when(repository).add(any(CertificateDTO.class));
+            assertThrows(ServiceException.class, () -> service.add(certificateDTOSample));
+            verify(repository).add(any(CertificateDTO.class));
         }
 
         @Test
         void addingIncorrectGiftCertificateShouldRaiseException() throws RepositoryException {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.add(null)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new GiftCertificate("","test1",1.1f,1))),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new GiftCertificate("name1","test1",null,1))),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new GiftCertificate("name1","test1",null,-1)))
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new CertificateDTO("","test1",1.1f,1, new HashSet<>()))),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new CertificateDTO("name1","test1",null,1, new HashSet<>()))),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new CertificateDTO("name1","test1",null,-1, new HashSet<>())))
             );
-            GiftCertificate certificateForAdding = certificateSample;
-            certificateForAdding.addTag(new Tag("name"));
-            certificateForAdding.addTag(new Tag(null));
+            CertificateDTO certificateForAdding = certificateDTOSample;
+            Set<Tag> tags = Set.of(new Tag("name"),new Tag(null));
+            certificateForAdding.setTags(tags);
             assertThrows(IncorrectDataServiceException.class,() -> service.add(certificateForAdding));
             verify(repository, never()).add(any());
         }
@@ -157,17 +170,18 @@ public class CertificateServiceTest {
 
         @Test
         void correctUpdatingShouldReturnModifiedGiftCertificate() throws RepositoryException, ServiceException {
-           when(repository.update(any(GiftCertificate.class), any(GiftCertificate.class))).thenReturn(certificateSample2);
-           assertEquals(certificateSample2, service.update(certificateSample, new GiftCertificate("name","test GiftCertificate for adding",23.5f,2)));
-           verify(repository).update(any(GiftCertificate.class),any(GiftCertificate.class));
+            when(repository.update(any(CertificateDTO.class), anyLong())).thenReturn(certificateSample2);
+            assertEquals(certificateSample2, service.update(certificateDTOSample, 1L));
+            verify(repository).update(any(CertificateDTO.class),anyLong());
        }
 
        @Test
        void updatingWithIncorrectValuesShouldRaiseException() throws RepositoryException {
             assertAll(
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update(null, certificateSample)),
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateSample, null)),
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( null, null))
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update(null, 1L)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateDTOSample, null)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( null, null)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateDTOSample, -1L))
             );
            verify(repository, never()).update(any(), any());
        }

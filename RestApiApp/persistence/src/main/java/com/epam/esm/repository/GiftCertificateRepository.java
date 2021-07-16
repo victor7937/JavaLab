@@ -1,22 +1,24 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.RepositoryException;
 
-import java.util.List;
-
 /**
- * Repository for manipulating certificate data in certificates-tag database
+ * Repository for manipulating certificate data in database
  */
 public interface GiftCertificateRepository {
 
     /**
      * Get gift certificates with some criteria
-     * @param criteria - searching certificates criteria
-     * @return list of some certificates which match the criteria
+     * @param certificateCriteria - searching certificates criteria
+     * @param pageSize - size of one page
+     * @param pageNumber - number of a current page
+     * @return page with certificates which match the criteria
      */
-    List<GiftCertificate> getByCriteria(Criteria criteria);
+    PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get one gift certificate by id if such id exists
@@ -24,7 +26,7 @@ public interface GiftCertificateRepository {
      * @return certificate found
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    GiftCertificate getById(int id) throws RepositoryException;
+    GiftCertificate getById(Long id) throws RepositoryException;
 
     /**
      * Add new gift certificate to database
@@ -32,20 +34,19 @@ public interface GiftCertificateRepository {
      * @return Added gift certificate with new generated data
      * @throws RepositoryException if some troubles in database were happened
      */
-    GiftCertificate add(GiftCertificate giftCertificate) throws RepositoryException;
+    GiftCertificate add(CertificateDTO giftCertificate) throws RepositoryException;
 
     /**
      * Delete gift certificate from database
      * @param id - id of gift certificate for deleting
      * @throws RepositoryException if such id exists or some troubles in database were happened
      */
-    void delete(int id) throws RepositoryException;
+    void delete(Long id) throws RepositoryException;
 
     /**
-     * @param current - gift certificate before modifying
      * @param modified - gift certificate after modifying
      * @return modified gift certificate with some generated data
      * @throws RepositoryException if some troubles in database were happened
      */
-    GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws RepositoryException;
+    GiftCertificate update(CertificateDTO modified, Long id) throws RepositoryException;
 }

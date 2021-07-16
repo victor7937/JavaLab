@@ -1,44 +1,61 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.entity.Criteria;
+import com.epam.esm.dto.CertificateDTO;
+import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
+import com.epam.esm.validator.CriteriaValidator;
 import com.epam.esm.validator.ServiceValidator;
-import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
-
-    private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
     private final GiftCertificateRepository giftCertificateRepository;
 
-    private final ServiceValidator<GiftCertificate, Integer> validator;
+    private final ServiceValidator<CertificateDTO> validator;
+
+    private final CriteriaValidator<CertificateCriteria> criteriaValidator;
 
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
+    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
+    private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
+    private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
 
     @Autowired
-    public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<GiftCertificate, Integer> validator) {
+    public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, ServiceValidator<CertificateDTO> validator,
+                                      CriteriaValidator<CertificateCriteria> criteriaValidator) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.validator = validator;
+        this.criteriaValidator = criteriaValidator;
+    }
+
+
+    @Override
+    public PagedDTO<GiftCertificate> get(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws ServiceException {
+        if (!(validator.isPageParamsValid(pageSize, pageNumber) && criteriaValidator.validateCriteria(certificateCriteria))){
+            throw new IncorrectDataServiceException(INCORRECT_PARAMS_MSG);
+        }
+
+        PagedDTO<GiftCertificate> pagedDTO;
+        try {
+            pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
+        } catch (IncorrectPageRepositoryException e) {
+            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+        } catch (RepositoryException e){
+            throw new ServiceException(e);
+        }
+        return pagedDTO;
     }
 
     @Override
-    public List<GiftCertificate> get(Optional<String> tagName, Optional<String> namePart, Optional<String> sortBy, Optional<String> sortOrder) {
-        return giftCertificateRepository.getByCriteria(Criteria.createCriteria(tagName, namePart, sortBy, sortOrder));
-    }
-
-    @Override
-    public GiftCertificate getById(Integer id) throws ServiceException{
-        if (!validator.isIdValid(id)){
+    public GiftCertificate getById(Long id) throws ServiceException{
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
 
@@ -54,7 +71,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public GiftCertificate add(GiftCertificate giftCertificate) throws ServiceException {
+    public GiftCertificate add(CertificateDTO giftCertificate) throws ServiceException {
         if (!validator.validate(giftCertificate)){
             throw new IncorrectDataServiceException(INCORRECT_CERTIFICATE_MSG);
         }
@@ -69,8 +86,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public void delete(Integer id) throws ServiceException {
-        if (!validator.isIdValid(id)){
+    public void delete(Long id) throws ServiceException {
+        if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
 
@@ -84,14 +101,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public GiftCertificate update(GiftCertificate current, GiftCertificate modified) throws ServiceException {
-        if (!(validator.validate(current) && validator.validate(modified))){
+    public GiftCertificate update(CertificateDTO modified, Long id) throws ServiceException {
+        if (!(validator.validate(modified) && validator.isLongIdValid(id))){
             throw new IncorrectDataServiceException(INCORRECT_CERTIFICATE_MSG);
         }
 
         GiftCertificate resultCertificate;
         try {
-            resultCertificate = giftCertificateRepository.update(current, modified);
+            resultCertificate = giftCertificateRepository.update(modified, id);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
