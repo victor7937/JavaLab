@@ -2,6 +2,7 @@ package com.epam.esm.criteria;
 
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.Order_;
+import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -12,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class OrderCriteria extends Criteria{
 
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
@@ -74,33 +76,6 @@ public class OrderCriteria extends Criteria{
 
         return new OrderCriteria(sortingField, order, minCost, maxCost, minTime, maxTime);
     }
-
-
-
-    public SortingField getSortingField() {
-        return sortingField;
-    }
-
-    public SortingOrder getSortingOrder() {
-        return sortingOrder;
-    }
-
-    public Float getMinCost() {
-        return minCost;
-    }
-
-    public Float getMaxCost() {
-        return maxCost;
-    }
-
-    public LocalDateTime getMinTime() {
-        return minTime;
-    }
-
-    public LocalDateTime getMaxTime() {
-        return maxTime;
-    }
-
 
     public enum SortingField {
         ID(Order_.id), COST(Order_.cost), TIME(Order_.timeOfPurchase);

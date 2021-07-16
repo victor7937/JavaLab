@@ -16,7 +16,8 @@ import com.epam.esm.hateoas.model.UserModel;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
 import com.epam.esm.util.StatusCodeGenerator;
-import org.apache.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -39,15 +40,14 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
     private final OrderService orderService;
     private final UserAssembler userAssembler;
     private final OrderAssembler orderAssembler;
-
-    Logger logger = Logger.getLogger(UserController.class);
-
+    
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in User Controller";
 
     @Autowired
@@ -78,7 +78,7 @@ public class UserController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
 
@@ -104,7 +104,7 @@ public class UserController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return userAssembler.toModel(user);
@@ -132,7 +132,7 @@ public class UserController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         if (pagedDTO.isEmpty()){
@@ -159,7 +159,7 @@ public class UserController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return orderAssembler.toModel(order);

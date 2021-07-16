@@ -3,6 +3,7 @@ package com.epam.esm.criteria;
 
 import com.epam.esm.entity.User;
 import com.epam.esm.entity.User_;
+import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 
 import javax.persistence.metamodel.SingularAttribute;
@@ -10,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class UserCriteria extends Criteria {
 
     private String namePart;
@@ -41,22 +43,6 @@ public class UserCriteria extends Criteria {
         Optional<String> surnamePart = Optional.ofNullable(criteriaParams.get(RequestParams.SURNAME.value));
 
         return new UserCriteria(sortingField, order, namePart, surnamePart);
-    }
-
-    public String getNamePart() {
-        return namePart;
-    }
-
-    public String getSurnamePart() {
-        return surnamePart;
-    }
-
-    public SortingField getSortingField() {
-        return sortingField;
-    }
-
-    public SortingOrder getSortingOrder() {
-        return sortingOrder;
     }
 
     public enum SortingField {

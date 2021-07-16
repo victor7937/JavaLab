@@ -2,6 +2,10 @@ package com.epam.esm.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,6 +18,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "tag")
+@NoArgsConstructor @Getter @Setter @ToString
 public class Tag implements Serializable {
 
     private static final long serialVersionUID = 8176941299187590799L;
@@ -36,11 +41,10 @@ public class Tag implements Serializable {
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "cert_id")
     )
+
     @JsonIgnore
+    @ToString.Exclude
     private List<GiftCertificate> certificates = new ArrayList<>();
-
-
-    public Tag () {}
 
     public Tag(Long id, String name) {
         this.id = id;
@@ -49,30 +53,6 @@ public class Tag implements Serializable {
 
     public Tag(String name) {
         this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<GiftCertificate> getCertificates() {
-        return certificates;
-    }
-
-    public void setCertificates(List<GiftCertificate> certificates) {
-        this.certificates = certificates;
     }
 
     public void addCertificate(GiftCertificate giftCertificate){
@@ -96,11 +76,4 @@ public class Tag implements Serializable {
         return Objects.hash(name);
     }
 
-    @Override
-    public String toString() {
-        return "Tag{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
-    }
 }

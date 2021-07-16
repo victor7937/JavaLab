@@ -5,7 +5,8 @@ import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.service.TagService;
 import com.epam.esm.util.StatusCodeGenerator;
-import org.apache.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,11 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @RestController
 @RequestMapping("/tags")
+@Slf4j
 public class TagController {
 
     private final TagService tagService;
-    Logger logger = Logger.getLogger(TagController.class);
+   
 
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Tag Controller";
 
@@ -51,7 +53,7 @@ public class TagController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         if (pagedDTO.isEmpty()){
@@ -75,7 +77,7 @@ public class TagController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return tag;
@@ -95,7 +97,7 @@ public class TagController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
@@ -115,7 +117,7 @@ public class TagController {
         } catch (IncorrectDataServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
         } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
+            log.error(EXCEPTION_CAUGHT_MSG, e);
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return new ResponseEntity<>(HttpStatus.OK);
