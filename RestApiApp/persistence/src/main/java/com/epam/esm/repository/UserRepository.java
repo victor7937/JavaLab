@@ -36,4 +36,6 @@ public interface UserRepository {
      * @return true if user was found, else false
      */
     boolean isUserExists(String email);
+
+    void persist(User user);
 }

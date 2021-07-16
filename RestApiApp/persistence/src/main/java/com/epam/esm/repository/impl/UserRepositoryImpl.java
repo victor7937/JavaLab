@@ -82,6 +82,12 @@ public class UserRepositoryImpl implements UserRepository {
         return typedQuery.getSingleResult() > 0;
     }
 
+    @Override
+    @Transactional
+    public void persist(User user) {
+        entityManager.persist(user);
+    }
+
     private Predicate createPredicates(UserCriteria criteria, Root<User> userRoot){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         Predicate conditions = criteriaBuilder.conjunction();

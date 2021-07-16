@@ -28,4 +28,12 @@ public class OrderDTO {
     public void setId(Long id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return "OrderDTO{" +
+                "email='" + email + '\'' +
+                ", id=" + id +
+                '}';
+    }
 }
