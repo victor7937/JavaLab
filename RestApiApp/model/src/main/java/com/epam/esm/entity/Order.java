@@ -45,7 +45,7 @@ public class Order implements Serializable {
     @ManyToOne(cascade = {CascadeType.DETACH,
             CascadeType.MERGE, CascadeType.REMOVE,
             CascadeType.REFRESH})
-    @JoinColumn(name = "users_email")
+    @JoinColumn(name = "users_id")
     private User user;
 
 

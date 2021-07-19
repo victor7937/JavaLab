@@ -6,6 +6,7 @@ import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
+import com.epam.esm.entity.Permission;
 import com.epam.esm.exception.IncorrectDataServiceException;
 import com.epam.esm.exception.IncorrectPageServiceException;
 import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
@@ -22,13 +23,13 @@ import com.epam.esm.util.StatusCodeGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -58,7 +59,6 @@ public class GiftCertificateController {
     private final OrderService orderService;
 
 
-
     @Autowired
     public GiftCertificateController(GiftCertificateService giftCertificateService,
                                      GiftCertificateAssembler certificateAssembler,
@@ -73,7 +73,9 @@ public class GiftCertificateController {
      * Get method for receiving paged list of certificates by some criteria
      * @return List of certificates in JSON
      */
+
     @GetMapping(produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('certificates:read')")
     public PagedModel<GiftCertificateModel> getCertificates ( @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                               @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                               @RequestParam Map<String, String> criteriaParams) {
@@ -102,6 +104,7 @@ public class GiftCertificateController {
      * @return certificate found in JSON
      */
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('certificates:read')")
     public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
         GiftCertificate giftCertificate;
         try {
@@ -125,6 +128,7 @@ public class GiftCertificateController {
      * @return certificate that was added in JSON
      */
     @PostMapping( produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('certificates:write')")
     public GiftCertificateModel addNewCertificate(@RequestBody CertificateDTO giftCertificate){
         GiftCertificate certificateForResponse;
         try {
@@ -145,6 +149,7 @@ public class GiftCertificateController {
      * @return OK response if certificate was deleted
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('certificates:write')")
     public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Long id){
         try {
             giftCertificateService.delete(id);
@@ -167,6 +172,7 @@ public class GiftCertificateController {
      * @param patch - RFC6901 patch commands
      * @return modified certificate
      */
+    @PreAuthorize("hasAuthority('certificates:write')")
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json",  produces = { "application/prs.hal-forms+json" })
     public GiftCertificateModel updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
@@ -191,6 +197,7 @@ public class GiftCertificateController {
      * @param orderDTO contains users email and certificates id
      * @return Order with all data about purchase
      */
+    @PreAuthorize("hasAuthority('certificates:buy')")
     @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
     public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
         Order orderForResponse;

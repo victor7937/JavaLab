@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,6 +43,7 @@ public class TagController {
      * @return page with tags found
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('tags:read')")
     public PagedModel<Tag> getTags(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                    @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                    @RequestParam (name = "part", required = false, defaultValue = "") String namePart) {
@@ -68,6 +70,7 @@ public class TagController {
      * @return tag found in JSON
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('tags:read')")
     public Tag getTagById (@PathVariable("id") Long id){
         Tag tag;
         try {
@@ -89,6 +92,7 @@ public class TagController {
      * @return tag that was added in JSON
      */
     @PostMapping()
+    @PreAuthorize("hasAuthority('tags:write')")
     public ResponseEntity<Object> addNewTag(@RequestBody Tag tag) {
         try {
             tagService.add(tag);
@@ -109,6 +113,7 @@ public class TagController {
      * @return OK response if tag was deleted
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('tags:write')")
     public ResponseEntity<Object> deleteTag (@PathVariable("id") Long id){
         try {
             tagService.delete(id);
@@ -128,6 +133,7 @@ public class TagController {
      * @return Tag that was found
      */
     @GetMapping("/most-used-tag")
+    @PreAuthorize("hasAuthority('tags:read')")
     Tag getMostUsedTagOfValuableCustomer() {
         return tagService.getMostUsedTagOfValuableCustomer();
     }

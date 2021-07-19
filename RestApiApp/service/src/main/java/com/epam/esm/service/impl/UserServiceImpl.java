@@ -20,10 +20,12 @@ public class UserServiceImpl implements UserService {
     private final CriteriaValidator<UserCriteria> criteriaValidator;
     private final ServiceValidator<User> serviceValidator;
 
-    private static final String NOT_EXIST_MSG = "User with email %s doesn't exist";
+    private static final String NOT_EXIST_EMAIL_MSG = "User with email %s doesn't exist";
+    private static final String NOT_EXIST_MSG = "User with id %s doesn't exist";
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
-    private static final String INCORRECT_USER_EXIST_MSG = "Users email is incorrect";
+    private static final String INCORRECT_USERS_EMAIL_MSG = "Users email is incorrect";
+    private static final String INCORRECT_USER_MSG = "Users id is incorrect";
 
 
     @Autowired
@@ -53,14 +55,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getByEmail(String email) throws ServiceException {
         if (!serviceValidator.isStringIdValid(email)){
-            throw new IncorrectDataServiceException(INCORRECT_USER_EXIST_MSG);
+            throw new IncorrectDataServiceException(INCORRECT_USERS_EMAIL_MSG);
         }
 
         User user;
         try {
             user = userRepository.getByEmail(email);
         } catch (DataNotExistRepositoryException e) {
-            throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, email), e);
+            throw new NotFoundServiceException(String.format(NOT_EXIST_EMAIL_MSG, email), e);
+        } catch (RepositoryException e){
+            throw new ServiceException(e);
+        }
+        return user;
+    }
+
+    @Override
+    public User getById(Long id) throws ServiceException {
+        if (!serviceValidator.isLongIdValid(id)){
+            throw new IncorrectDataServiceException(INCORRECT_USER_MSG);
+        }
+
+        User user;
+        try {
+            user = userRepository.getById(id);
+        } catch (DataNotExistRepositoryException e) {
+            throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, id), e);
         } catch (RepositoryException e){
             throw new ServiceException(e);
         }

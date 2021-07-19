@@ -26,6 +26,7 @@ import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -66,6 +67,7 @@ public class UserController {
      * @return Page of users
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('users:read')")
     public PagedModel<UserModel> getUsers(@RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                           @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                           @RequestParam Map<String, String> criteriaParams){
@@ -91,14 +93,15 @@ public class UserController {
 
     /**
      * Get method for finding user by its email
-     * @param email - email of a user
+     * @param id - id of a user
      * @return user found
      */
-    @GetMapping(value = "/{email}", produces = { "application/prs.hal-forms+json" })
-    public UserModel getByEmail(@PathVariable("email") String email){
+    @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('users:read')")
+    public UserModel getById(@PathVariable("id") Long id){
         User user;
         try {
-            user = userService.getByEmail(email);
+            user = userService.getById(id);
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -112,21 +115,22 @@ public class UserController {
 
     /**
      * Get method for receiving a page of orders by some criteria
-     * @param email - email of a user
+     * @param id - id of a user
      * @param size - size of a page
      * @param page - current page
      * @param criteriaParams - Other params for filtering and sorting
      * @return page of orders
      */
-    @GetMapping(value = "/{email}/orders", produces = { "application/prs.hal-forms+json" })
-    public PagedModel<OrderModel> getOrdersOfUser(@PathVariable("email") String email,
+    @GetMapping(value = "/{id}/orders", produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('orders:read')")
+    public PagedModel<OrderModel> getOrdersOfUser(@PathVariable("id") Long id,
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                   @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                   @RequestParam Map<String, String> criteriaParams){
         PagedDTO<Order> pagedDTO;
         OrderCriteria criteria = OrderCriteria.createCriteria(criteriaParams);
         try {
-           pagedDTO = orderService.getOrdersOfUser(email, criteria, size, page);
+           pagedDTO = orderService.getOrdersOfUser(id, criteria, size, page);
         } catch (NotFoundServiceException | IncorrectPageServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {
@@ -145,15 +149,16 @@ public class UserController {
 
     /**
      * Get method for receiving an order of a user by its id
-     * @param email - users email
+     * @param id - users id
      * @param orderId - orders id
      * @return order found
      */
-    @GetMapping(value = "/{email}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
-    public OrderModel getOrderOfUser(@PathVariable("email") String email, @PathVariable("orderId") Long orderId){
+    @GetMapping(value = "/{id}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('orders:read')")
+    public OrderModel getOrderOfUser(@PathVariable("id") Long id, @PathVariable("orderId") Long orderId){
         Order order;
         try {
-           order = orderService.getOrder(email, orderId);
+           order = orderService.getOrder(id, orderId);
         } catch (NotFoundServiceException e) {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
         } catch (IncorrectDataServiceException e) {

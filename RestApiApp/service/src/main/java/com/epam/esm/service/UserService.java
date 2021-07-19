@@ -28,4 +28,6 @@ public interface UserService {
      * @throws ServiceException if email is incorrect or some troubles in data source were happened
      */
     User getByEmail(String email) throws ServiceException;
+
+    User getById(Long id) throws ServiceException;
 }

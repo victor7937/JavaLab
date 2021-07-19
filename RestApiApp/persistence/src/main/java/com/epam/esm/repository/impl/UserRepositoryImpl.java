@@ -1,6 +1,5 @@
 package com.epam.esm.repository.impl;
 
-import com.epam.esm.criteria.SortingOrder;
 import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.*;
@@ -25,7 +24,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private final EntityManager entityManager;
 
-    private static final String JPQL_GET_ALL = "SELECT u FROM User u";
+    private static final String JPQL_GET_BY_EMAIL = "SELECT u FROM User u where u.email = :email";
 
     @Autowired
     public UserRepositoryImpl(EntityManager entityManager) {
@@ -66,17 +65,36 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     @Transactional
     public User getByEmail(String email) throws RepositoryException {
-        return Optional.ofNullable(entityManager.find(User.class, email)).orElseThrow(DataNotExistRepositoryException::new);
+        return entityManager.createQuery(JPQL_GET_BY_EMAIL, User.class).setParameter(User_.EMAIL, email).getResultStream()
+                .findAny().orElseThrow(DataNotExistRepositoryException::new);
     }
 
     @Override
-    public boolean isUserExists(String email){
+    public User getById(Long id) throws RepositoryException {
+        return Optional.ofNullable(entityManager.find(User.class, id)).orElseThrow(DataNotExistRepositoryException::new);
+    }
+
+    @Override
+    public boolean isEmailExists(String email){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
         Root<User> userRoot = criteriaQuery.from(User.class);
 
         criteriaQuery.select(criteriaBuilder.count(userRoot));
         criteriaQuery.where(criteriaBuilder.equal(userRoot.get(User_.email), email));
+
+        TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
+        return typedQuery.getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean isIdExists(Long id) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<User> userRoot = criteriaQuery.from(User.class);
+
+        criteriaQuery.select(criteriaBuilder.count(userRoot));
+        criteriaQuery.where(criteriaBuilder.equal(userRoot.get(User_.id), id));
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
         return typedQuery.getSingleResult() > 0;
@@ -91,11 +109,11 @@ public class UserRepositoryImpl implements UserRepository {
     private Predicate createPredicates(UserCriteria criteria, Root<User> userRoot){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         Predicate conditions = criteriaBuilder.conjunction();
-        if (!criteria.getNamePart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.name),criteria.getNamePart() + "%"));
+        if (!criteria.getFirstNamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.firstName),criteria.getFirstNamePart() + "%"));
         }
-        if (!criteria.getSurnamePart().isBlank()){
-            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.surname),criteria.getSurnamePart() + "%"));
+        if (!criteria.getLastNamePart().isBlank()){
+            conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(userRoot.get(User_.lastName),criteria.getLastNamePart() + "%"));
         }
         return conditions;
     }

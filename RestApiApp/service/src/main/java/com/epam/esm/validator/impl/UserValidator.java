@@ -10,8 +10,8 @@ public class UserValidator implements ServiceValidator<User> {
 
     @Override
     public boolean validate(User model) {
-        return model != null && model.getName() != null && !model.getName().isBlank()
-                && model.getSurname() != null && !model.getSurname().isBlank()
+        return model != null && model.getFirstName() != null && !model.getFirstName().isBlank()
+                && model.getLastName() != null && !model.getLastName().isBlank()
                 && model.getEmail() != null && isStringIdValid(model.getEmail());
     }
 

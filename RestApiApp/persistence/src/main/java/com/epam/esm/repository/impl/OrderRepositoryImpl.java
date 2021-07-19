@@ -1,8 +1,6 @@
 package com.epam.esm.repository.impl;
 
-import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.criteria.OrderCriteria;
-import com.epam.esm.criteria.SortingOrder;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.*;
 import com.epam.esm.entity.Order;
@@ -25,7 +23,7 @@ import java.util.List;
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
 
-    private static final String JPQL_GET_USERS_ORDER = "SELECT o from Order o where o.user.email = :email and o.id = :id";
+    private static final String JPQL_GET_USERS_ORDER = "SELECT o from Order o where o.user.id = :u_id and o.id = :o_id";
     private final EntityManager entityManager;
     private final UserRepository userRepository;
 
@@ -45,8 +43,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     @Transactional
-    public PagedDTO<Order> getOrders(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
-        if (!userRepository.isUserExists(userEmail)){
+    public PagedDTO<Order> getOrders(Long userId, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException {
+        if (!userRepository.isIdExists(userId)){
             throw new DataNotExistRepositoryException();
         }
 
@@ -54,7 +52,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         CriteriaQuery<Order> criteriaQuery = criteriaBuilder.createQuery(Order.class);
         Root<Order> orderRoot = criteriaQuery.from(Order.class);
         Join<Order, User> orderJoin = orderRoot.join(Order_.user);
-        Predicate conditions = criteriaBuilder.equal(orderJoin.get(User_.email), userEmail);
+        Predicate conditions = criteriaBuilder.equal(orderJoin.get(User_.id), userId);
         criteriaQuery.select(orderRoot).distinct(true);
 
         conditions = criteriaBuilder.and(conditions, createPredicates(criteria, orderRoot));
@@ -89,9 +87,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     @Transactional
-    public Order getOrder(String userEmail, Long orderId) throws RepositoryException {
+    public Order getOrder(Long userId, Long orderId) throws RepositoryException {
         return entityManager.createQuery(JPQL_GET_USERS_ORDER, Order.class)
-                .setParameter("id", orderId).setParameter("email", userEmail).getResultStream()
+                .setParameter("o_id", orderId).setParameter("u_id", userId).getResultStream()
                 .findAny().orElseThrow(DataNotExistRepositoryException::new);
     }
 

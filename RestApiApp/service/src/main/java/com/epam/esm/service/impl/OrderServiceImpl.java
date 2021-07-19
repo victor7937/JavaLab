@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
 public class OrderServiceImpl implements OrderService {
 
 
-    private static final String EMAIL_NOT_VALID = "User email is not valid";
+
     private final OrderRepository orderRepository;
 
     private final UserRepository userRepository;
@@ -32,9 +32,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final ServiceValidator<OrderDTO> validator;
 
-    private static final String USER_NOT_EXIST_MSG = "User with email %s doesn't exist";
+    private static final String EMAIL_NOT_VALID = "Users email is not valid";
+    private static final String USERS_ID_NOT_VALID = "Users id is not valid";
+    private static final String USERS_EMAIL_NOT_EXISTS_MSG = "User with email %s doesn't exist";
+    private static final String USER_NOT_EXIST_MSG = "User with id %s doesn't exist";
     private static final String CERTIFICATE_NOT_EXIST_MSG = "Certificate with id %s doesn't exist";
-    private static final String INCORRECT_ORDER_MSG = "Incorrect order id or users email";
+    private static final String INCORRECT_ORDER_MSG = "Incorrect id of an order or a user";
     private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
     private static final String INCORRECT_ORDER_PARAMS_MSG = "Incorrect order details";
@@ -59,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             user = userRepository.getByEmail(orderDTO.getEmail());
         } catch (DataNotExistRepositoryException e){
-            throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, orderDTO.getEmail()), e);
+            throw new NotFoundServiceException(String.format(USERS_EMAIL_NOT_EXISTS_MSG, orderDTO.getEmail()), e);
         } catch (RepositoryException e) {
             throw new ServiceException(e);
         }
@@ -81,18 +84,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PagedDTO<Order> getOrdersOfUser(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException {
+    public PagedDTO<Order> getOrdersOfUser(Long userId, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException {
         if (!(criteriaValidator.validateCriteria(criteria) && validator.isPageParamsValid(pageSize, pageNumber))){
             throw new IncorrectDataServiceException(INCORRECT_PARAMS_MSG);
         }
-        if (!validator.isStringIdValid(userEmail)){
-            throw new IncorrectDataServiceException(EMAIL_NOT_VALID);
+        if (!validator.isLongIdValid(userId)){
+            throw new IncorrectDataServiceException(USERS_ID_NOT_VALID);
         }
         PagedDTO<Order> orders;
         try {
-            orders = orderRepository.getOrders(userEmail, criteria, pageSize, pageNumber);
+            orders = orderRepository.getOrders(userId, criteria, pageSize, pageNumber);
         } catch (DataNotExistRepositoryException e) {
-            throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, userEmail), e);
+            throw new NotFoundServiceException(String.format(USER_NOT_EXIST_MSG, userId), e);
         } catch (IncorrectPageRepositoryException e) {
             throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
         } catch (RepositoryException e){
@@ -102,14 +105,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrder(String userEmail, Long orderId) throws ServiceException {
+    public Order getOrder(Long userId, Long orderId) throws ServiceException {
         Order order;
-        if (!(validator.isLongIdValid(orderId) && validator.isStringIdValid(userEmail))){
+        if (!(validator.isLongIdValid(orderId) && validator.isLongIdValid(userId))){
             throw new IncorrectDataServiceException(INCORRECT_ORDER_MSG);
         }
 
         try {
-            order = orderRepository.getOrder(userEmail, orderId);
+            order = orderRepository.getOrder(userId, orderId);
         } catch (DataNotExistRepositoryException e) {
             throw new NotFoundServiceException(INCORRECT_ORDER_MSG, e);
         } catch (RepositoryException e) {

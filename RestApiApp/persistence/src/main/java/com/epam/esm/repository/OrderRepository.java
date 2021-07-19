@@ -23,18 +23,18 @@ public interface OrderRepository {
      * Gets page with order of a user form database by criteria
      * @param pageSize - size of one page
      * @param pageNumber - number of a current page
-     * @param userEmail - email of a user for orders searching
+     * @param userID - id of a user for orders searching
      * @return page with orders which match the criteria
      * @throws RepositoryException if no such page or some troubles in database were happened
      */
-    PagedDTO<Order> getOrders(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException;
+    PagedDTO<Order> getOrders(Long userId, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException;
 
     /**
      * Get order of a user by its id
-     * @param userEmail email of a user
+     * @param userId id of a user
      * @param orderId id of users order
      * @return order found
      * @throws RepositoryException if order wasn't found or some troubles in database were happened
      */
-    Order getOrder(String userEmail, Long orderId) throws RepositoryException;
+    Order getOrder(Long userId, Long orderId) throws RepositoryException;
 }

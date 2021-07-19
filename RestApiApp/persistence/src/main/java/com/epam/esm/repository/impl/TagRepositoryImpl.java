@@ -29,13 +29,13 @@ public class TagRepositoryImpl implements TagRepository{
     private static final String JPQL_GET_BY_NAME = "SELECT t from Tag t where t.name = :name";
 
     private static final String SQL_GET_MOST_USED_TAG_OF_VALUABLE_CLIENT =
-            "SELECT t.id, t.name, COUNT(t.id) as tg_count from user u" +
-            " join orders o on u.email = o.users_email" +
+            "SELECT t.id, t.name, COUNT(t.id) as tg_count from users u" +
+            " join orders o on u.id = o.users_id" +
             " join gift_certificate gc on gc.id = o.certificate_id" +
             " join m2m_certificate_tag m2mct on gc.id = m2mct.cert_id" +
             " join tag t on t.id = m2mct.tag_id where u.email =" +
-            " (SELECT s.email from (SELECT SUM(o.cost) as s_cost, u.email as email from orders o" +
-            " join user u on u.email = o.users_email group by u.email order by s_cost DESC LIMIT 1) s)" +
+            " (SELECT s.u_id from (SELECT SUM(o.cost) as s_cost, u.id as u_id from orders o" +
+            " join users u on u.id = o.users_id group by u_id order by s_cost DESC LIMIT 1) s)" +
             " group by t.name order by tg_count desc LIMIT 1";
 
     private final EntityManager entityManager;

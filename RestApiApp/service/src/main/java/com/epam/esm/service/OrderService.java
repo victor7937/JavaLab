@@ -26,18 +26,18 @@ public interface OrderService {
      * @param criteria - criteria with params for filtering and sorting
      * @param pageSize - size of one page
      * @param pageNumber - number of a current page
-     * @param userEmail - email of user for getting its orders
+     * @param userId - id of user for getting its orders
      * @return page with orders found
      * @throws ServiceException if criteria or pagination params are incorrect or some troubles in data source were happened
      */
-    PagedDTO<Order> getOrdersOfUser(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException;
+    PagedDTO<Order> getOrdersOfUser(Long userId, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException;
 
     /**
      * Get order of a user by its id
-     * @param userEmail email of a user
+     * @param userId id of a user
      * @param orderId id of users order
      * @return order found
      * @throws ServiceException if email or id are incorrect, order wasn't found or some troubles in data source were happened
      */
-    Order getOrder(String userEmail, Long orderId) throws ServiceException;
+    Order getOrder(Long userId, Long orderId) throws ServiceException;
 }

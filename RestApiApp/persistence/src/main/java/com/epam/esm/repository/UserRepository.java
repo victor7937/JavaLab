@@ -29,13 +29,17 @@ public interface UserRepository {
      */
     User getByEmail(String email) throws RepositoryException;
 
+    User getById(Long id) throws RepositoryException;
 
     /**
      * Checks if user with such email exists in database
      * @param email - email of user for checking
      * @return true if user was found, else false
      */
-    boolean isUserExists(String email);
+    boolean isEmailExists(String email);
+
+    boolean isIdExists(Long id);
+
 
     void persist(User user);
 }

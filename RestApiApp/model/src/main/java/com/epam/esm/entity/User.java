@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,30 +13,45 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @NoArgsConstructor @Getter @Setter @ToString
 public class User implements Serializable  {
 
     private static final long serialVersionUID = -7299750937016032393L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "password")
+    private String password;
 
-    @Column(name = "surname")
-    private String surname;
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "active")
+    private boolean active;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
+
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     @ToString.Exclude
     private List<Order> orders = new ArrayList<>();
 
-    public User(String email, String name, String surname) {
+    public User(String email, String firstName, String lastName) {
         this.email = email;
-        this.name = name;
-        this.surname = surname;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     public void addOrder(Order order){
