@@ -16,6 +16,8 @@ public class UserAccountDetails implements UserDetails {
 
     private String password;
 
+    private Long id;
+
     Collection<? extends GrantedAuthority> authorities;
 
     private Boolean enabled;
@@ -55,7 +57,11 @@ public class UserAccountDetails implements UserDetails {
         return enabled;
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public static UserAccountDetails of(User user){
-        return new UserAccountDetails(user.getEmail(), user.getPassword(), user.getRole().getAuthorities(), user.isActive());
+        return new UserAccountDetails(user.getEmail(), user.getPassword(), user.getId(), user.getRole().getAuthorities(), user.isActive());
     }
 }

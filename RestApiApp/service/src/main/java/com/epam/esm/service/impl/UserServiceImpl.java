@@ -2,6 +2,7 @@ package com.epam.esm.service.impl;
 
 import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.dto.UserDTO;
 import com.epam.esm.entity.User;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.UserRepository;
@@ -9,6 +10,7 @@ import com.epam.esm.service.UserService;
 import com.epam.esm.validator.CriteriaValidator;
 import com.epam.esm.validator.ServiceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private static final String PASSWORD_IS_INVALID_MSG = "password is invalid";
     private final UserRepository userRepository;
     private final CriteriaValidator<UserCriteria> criteriaValidator;
     private final ServiceValidator<User> serviceValidator;
@@ -84,5 +87,21 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(e);
         }
         return user;
+    }
+
+    @Override
+    public void registration(UserDTO userDTO) throws ServiceException {
+        String email = userDTO.getEmail();
+        String password = userDTO.getPassword();
+        if (!(serviceValidator.isStringIdValid(email) && password != null && !password.isBlank())){
+            throw new IncorrectDataServiceException(PASSWORD_IS_INVALID_MSG);
+        }
+        if (userRepository.isEmailExists(email)){
+            throw new AlreadyExistServiceException(String.format("Email %s already exists", email));
+        }
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+        User user = new User(email, passwordEncoder.encode(password), userDTO.getFirstName(), userDTO.getLastName());
+        userRepository.add(user);
     }
 }

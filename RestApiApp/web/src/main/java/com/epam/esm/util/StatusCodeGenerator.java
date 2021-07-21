@@ -1,5 +1,6 @@
 package com.epam.esm.util;
 
+import com.epam.esm.controller.AuthController;
 import com.epam.esm.controller.GiftCertificateController;
 import com.epam.esm.controller.TagController;
 import com.epam.esm.controller.UserController;

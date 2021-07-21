@@ -40,6 +40,5 @@ public interface UserRepository {
 
     boolean isIdExists(Long id);
 
-
-    void persist(User user);
+    void add(User user);
 }

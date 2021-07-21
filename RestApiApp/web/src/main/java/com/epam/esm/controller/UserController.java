@@ -13,16 +13,13 @@ import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.assembler.UserAssembler;
 import com.epam.esm.hateoas.model.OrderModel;
 import com.epam.esm.hateoas.model.UserModel;
+import com.epam.esm.security.provider.UserAuthenticationProvider;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
 import com.epam.esm.util.StatusCodeGenerator;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 
@@ -31,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 
-import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 
@@ -48,15 +45,18 @@ public class UserController {
     private final OrderService orderService;
     private final UserAssembler userAssembler;
     private final OrderAssembler orderAssembler;
+    private final UserAuthenticationProvider authenticationProvider;
     
     private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in User Controller";
 
     @Autowired
-    public UserController(UserService userService, OrderService orderService, UserAssembler userAssembler, OrderAssembler orderAssembler) {
+    public UserController(UserService userService, OrderService orderService, UserAssembler userAssembler,
+                          OrderAssembler orderAssembler, UserAuthenticationProvider authenticationProvider) {
         this.userService = userService;
         this.orderService = orderService;
         this.userAssembler = userAssembler;
         this.orderAssembler = orderAssembler;
+        this.authenticationProvider = authenticationProvider;
     }
 
     /**
@@ -97,7 +97,7 @@ public class UserController {
      * @return user found
      */
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
-    @PreAuthorize("hasAuthority('users:read')")
+    @PreAuthorize("hasPermission(#id,'users:read')")
     public UserModel getById(@PathVariable("id") Long id){
         User user;
         try {
@@ -122,7 +122,7 @@ public class UserController {
      * @return page of orders
      */
     @GetMapping(value = "/{id}/orders", produces = { "application/prs.hal-forms+json" })
-    @PreAuthorize("hasAuthority('orders:read')")
+    @PreAuthorize("hasPermission(#id,'orders:read')")
     public PagedModel<OrderModel> getOrdersOfUser(@PathVariable("id") Long id,
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                   @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
@@ -154,7 +154,7 @@ public class UserController {
      * @return order found
      */
     @GetMapping(value = "/{id}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
-    @PreAuthorize("hasAuthority('orders:read')")
+    @PreAuthorize("hasPermission(#id,'orders:read')")
     public OrderModel getOrderOfUser(@PathVariable("id") Long id, @PathVariable("orderId") Long orderId){
         Order order;
         try {
@@ -168,6 +168,24 @@ public class UserController {
             throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
         }
         return orderAssembler.toModel(order);
+    }
+
+    @GetMapping(value = "/me", produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('users:read-self')")
+    public UserModel getSelfUser(HttpServletRequest request){
+        String email = authenticationProvider.getUsernameFromRequest(request);
+        User user;
+        try {
+            user = userService.getByEmail(email);
+        } catch (NotFoundServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
+        } catch (IncorrectDataServiceException e) {
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
+        } catch (ServiceException e){
+            log.error(EXCEPTION_CAUGHT_MSG, e);
+            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
+        }
+        return userAssembler.toModel(user);
     }
 
     

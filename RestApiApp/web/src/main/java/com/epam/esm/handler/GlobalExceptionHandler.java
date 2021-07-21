@@ -8,6 +8,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +39,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseExceptionMessage> handleException(UsernameNotFoundException e){
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.NOT_FOUND, USER_NOT_FOUND), HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(value = BadCredentialsException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(BadCredentialsException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.FORBIDDEN, "Wrong email or password"), HttpStatus.FORBIDDEN);
+    }
+
+
 
     @ExceptionHandler(value = AccessDeniedException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(AccessDeniedException e){

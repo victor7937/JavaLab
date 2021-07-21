@@ -102,7 +102,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Transactional
-    public void persist(User user) {
+    public void add(User user) {
         entityManager.persist(user);
     }
 

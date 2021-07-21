@@ -1,5 +1,7 @@
 package com.epam.esm.entity;
 
+import com.epam.esm.audit.GiftCertificateAuditListener;
+import com.epam.esm.audit.UserAuditListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +16,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "users")
+@EntityListeners(UserAuditListener.class)
 @NoArgsConstructor @Getter @Setter @ToString
 public class User implements Serializable  {
 
@@ -47,6 +50,13 @@ public class User implements Serializable  {
     @JsonIgnore
     @ToString.Exclude
     private List<Order> orders = new ArrayList<>();
+
+    public User(String email, String password, String firstName, String lastName) {
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 
     public User(String email, String firstName, String lastName) {
         this.email = email;

@@ -31,7 +31,6 @@ public class OrderRepositoryImpl implements OrderRepository {
     public OrderRepositoryImpl(EntityManager entityManager, UserRepository userRepository) {
         this.entityManager = entityManager;
         this.userRepository = userRepository;
-
     }
 
     @Override

@@ -75,7 +75,6 @@ public class GiftCertificateController {
      */
 
     @GetMapping(produces = { "application/prs.hal-forms+json" })
-    @PreAuthorize("hasAuthority('certificates:read')")
     public PagedModel<GiftCertificateModel> getCertificates ( @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                               @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                               @RequestParam Map<String, String> criteriaParams) {
@@ -104,7 +103,6 @@ public class GiftCertificateController {
      * @return certificate found in JSON
      */
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
-    @PreAuthorize("hasAuthority('certificates:read')")
     public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
         GiftCertificate giftCertificate;
         try {
@@ -197,7 +195,7 @@ public class GiftCertificateController {
      * @param orderDTO contains users email and certificates id
      * @return Order with all data about purchase
      */
-    @PreAuthorize("hasAuthority('certificates:buy')")
+    @PreAuthorize("hasAuthority('certificates:buy') and authentication.name == #orderDTO.email")
     @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
     public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
         Order orderForResponse;

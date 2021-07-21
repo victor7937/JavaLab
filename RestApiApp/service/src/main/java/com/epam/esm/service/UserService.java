@@ -2,6 +2,7 @@ package com.epam.esm.service;
 
 import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
+import com.epam.esm.dto.UserDTO;
 import com.epam.esm.entity.User;
 import com.epam.esm.exception.ServiceException;
 
@@ -30,4 +31,6 @@ public interface UserService {
     User getByEmail(String email) throws ServiceException;
 
     User getById(Long id) throws ServiceException;
+
+    void registration(UserDTO userDTO) throws ServiceException;
 }
