@@ -2,10 +2,10 @@ package com.epam.esm.security.jwt;
 
 import com.epam.esm.security.exception.JwtAuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -37,7 +37,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
         } catch (JwtAuthenticationException e){
             SecurityContextHolder.clearContext();
-            throw new ResponseStatusException(e.getStatus(), e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }

@@ -5,9 +5,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.io.PrintStream;
 import java.io.Serializable;
-import java.security.Principal;
 import java.util.Objects;
 
 @Component

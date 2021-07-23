@@ -3,6 +3,7 @@ package com.epam.esm.handler;
 import com.epam.esm.exception.*;
 import com.epam.esm.message.ResponseExceptionMessage;
 
+import com.epam.esm.security.exception.JwtAuthenticationException;
 import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -66,6 +67,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseExceptionMessage> handleException(ServiceException e){
         log.error(EXCEPTION_CAUGHT_MSG, e);
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.INTERNAL_SERVER_ERROR, SERVER_ERROR_MSG), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = JwtAuthenticationException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(JwtAuthenticationException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(e.getStatus(), e.getMessage()), e.getStatus());
     }
 
     @ExceptionHandler(value = HttpMessageNotReadableException.class)

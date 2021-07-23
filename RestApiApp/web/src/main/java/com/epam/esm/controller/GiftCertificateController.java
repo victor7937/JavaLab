@@ -6,6 +6,7 @@ import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
+import com.epam.esm.entity.Permission;
 import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
 import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.model.GiftCertificateModel;
@@ -25,6 +26,10 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -152,12 +157,21 @@ public class GiftCertificateController {
     }
 
     private void addAffordances(GiftCertificateModel model){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || (authentication instanceof AnonymousAuthenticationToken) || !authentication.isAuthenticated()) {
+            return;
+        }
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority(Permission.CERTIFICATES_WRITE.name))){
+            model.mapLink(IanaLinkRelations.SELF, l -> l
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).updateCustomer(model.getId(),null)))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+        } else {
+            model.mapLink(IanaLinkRelations.SELF, l -> l
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+        }
 
-        model.mapLink(IanaLinkRelations.SELF, l -> l
-                .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).updateCustomer(model.getId(),null)))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
     }
     
 }
