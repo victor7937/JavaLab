@@ -5,10 +5,6 @@ import com.epam.esm.criteria.UserCriteria;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
-import com.epam.esm.exception.IncorrectDataServiceException;
-import com.epam.esm.exception.IncorrectPageServiceException;
-import com.epam.esm.exception.NotFoundServiceException;
-import com.epam.esm.exception.ServiceException;
 import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.assembler.UserAssembler;
 import com.epam.esm.hateoas.model.OrderModel;
@@ -16,7 +12,6 @@ import com.epam.esm.hateoas.model.UserModel;
 import com.epam.esm.security.provider.UserAuthenticationProvider;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
-import com.epam.esm.util.StatusCodeGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,23 +66,12 @@ public class UserController {
     public PagedModel<UserModel> getUsers(@RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                           @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                           @RequestParam Map<String, String> criteriaParams){
-        PagedDTO<User> pagedDTO;
-        UserCriteria criteria = UserCriteria.createCriteria(criteriaParams);
-        try {
-            pagedDTO = userService.get(criteria, size, page);
-        } catch (IncorrectPageServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            log.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
 
+        UserCriteria criteria = UserCriteria.createCriteria(criteriaParams);
+        PagedDTO<User> pagedDTO = userService.get(criteria, size, page);
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
-
         return userAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
@@ -99,17 +83,7 @@ public class UserController {
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
     @PreAuthorize("hasPermission(#id,'users:read')")
     public UserModel getById(@PathVariable("id") Long id){
-        User user;
-        try {
-            user = userService.getById(id);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            log.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        User user = userService.getById(id);
         return userAssembler.toModel(user);
     }
 
@@ -127,25 +101,14 @@ public class UserController {
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                   @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                   @RequestParam Map<String, String> criteriaParams){
-        PagedDTO<Order> pagedDTO;
+
         OrderCriteria criteria = OrderCriteria.createCriteria(criteriaParams);
-        try {
-           pagedDTO = orderService.getOrdersOfUser(id, criteria, size, page);
-        } catch (NotFoundServiceException | IncorrectPageServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            log.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        PagedDTO<Order> pagedDTO = orderService.getOrdersOfUser(id, criteria, size, page);
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
-
         return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
-
 
     /**
      * Get method for receiving an order of a user by its id
@@ -156,17 +119,7 @@ public class UserController {
     @GetMapping(value = "/{id}/orders/{orderId}", produces = { "application/prs.hal-forms+json" })
     @PreAuthorize("hasPermission(#id,'orders:read')")
     public OrderModel getOrderOfUser(@PathVariable("id") Long id, @PathVariable("orderId") Long orderId){
-        Order order;
-        try {
-           order = orderService.getOrder(id, orderId);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            log.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        Order order = orderService.getOrder(id, orderId);
         return orderAssembler.toModel(order);
     }
 
@@ -174,17 +127,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('users:read-self')")
     public UserModel getSelfUser(HttpServletRequest request){
         String email = authenticationProvider.getUsernameFromRequest(request);
-        User user;
-        try {
-            user = userService.getByEmail(email);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            log.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        User user = userService.getByEmail(email);
         return userAssembler.toModel(user);
     }
 

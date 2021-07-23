@@ -1,12 +1,14 @@
 package com.epam.esm.handler;
 
+import com.epam.esm.exception.*;
 import com.epam.esm.message.ResponseExceptionMessage;
 
-import lombok.extern.log4j.Log4j2;
+import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,7 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResponseStatusException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(ResponseStatusException e){
-        ResponseExceptionMessage message = new ResponseExceptionMessage(e.getRawStatusCode(), e.getReason());
+        ResponseExceptionMessage message = new ResponseExceptionMessage(e.getStatus(), e.getReason());
         return new ResponseEntity<>(message, message.getStatus());
     }
 
@@ -40,12 +42,41 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.NOT_FOUND, USER_NOT_FOUND), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(value = NotFoundServiceException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(NotFoundServiceException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = AlreadyExistServiceException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(AlreadyExistServiceException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.CONFLICT, e.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(value = IncorrectDataServiceException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(IncorrectDataServiceException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = IncorrectPageServiceException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(IncorrectPageServiceException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = ServiceException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(ServiceException e){
+        log.error(EXCEPTION_CAUGHT_MSG, e);
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.INTERNAL_SERVER_ERROR, SERVER_ERROR_MSG), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponseExceptionMessage> handleException(HttpMessageNotReadableException e){
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, "Json patch invalid format"), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(value = BadCredentialsException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(BadCredentialsException e){
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.FORBIDDEN, "Wrong email or password"), HttpStatus.FORBIDDEN);
     }
-
-
 
     @ExceptionHandler(value = AccessDeniedException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(AccessDeniedException e){
@@ -57,7 +88,6 @@ public class GlobalExceptionHandler {
         log.error(EXCEPTION_CAUGHT_MSG, e);
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, ARGUMENT_INVALID_MSG), HttpStatus.BAD_REQUEST);
     }
-
 
 
     @ExceptionHandler(value = DataAccessException.class)
