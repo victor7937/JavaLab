@@ -47,11 +47,11 @@ public class UserCriteria extends Criteria {
 
     public enum SortingField {
 
-        NAME(User_.firstName), SURNAME(User_.lastName), EMAIL(User_.email), ID(User_.id);
+        FIRST_NAME(User_.FIRST_NAME), LAST_NAME(User_.LAST_NAME), EMAIL(User_.EMAIL), ID(User_.ID);
 
-        public final SingularAttribute<User, ?> attribute;
+        public final String attribute;
 
-        SortingField(SingularAttribute<User, ?> attribute) {
+        SortingField(String attribute) {
             this.attribute = attribute;
         }
     }

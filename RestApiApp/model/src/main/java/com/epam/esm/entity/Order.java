@@ -37,14 +37,12 @@ public class Order implements Serializable {
     private Float cost;
 
     @ManyToOne(cascade = {CascadeType.DETACH,
-            CascadeType.REFRESH,
-            CascadeType.DETACH})
+            CascadeType.REFRESH, CascadeType.MERGE})
     @JoinColumn(name = "certificate_id")
     private GiftCertificate giftCertificate;
 
     @ManyToOne(cascade = {CascadeType.DETACH,
-            CascadeType.MERGE, CascadeType.REMOVE,
-            CascadeType.REFRESH})
+            CascadeType.REFRESH, CascadeType.MERGE})
     @JoinColumn(name = "users_id")
     private User user;
 

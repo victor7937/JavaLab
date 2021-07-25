@@ -46,7 +46,8 @@ public class User implements Serializable  {
     private Role role;
 
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.REFRESH, CascadeType.DETACH,
+            CascadeType.MERGE})
     @JsonIgnore
     @ToString.Exclude
     private List<Order> orders = new ArrayList<>();

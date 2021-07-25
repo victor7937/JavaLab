@@ -171,7 +171,6 @@ public class GiftCertificateController {
             model.mapLink(IanaLinkRelations.SELF, l -> l
                     .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
         }
-
     }
     
 }

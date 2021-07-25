@@ -1,12 +1,12 @@
 package com.epam.esm.criteria;
 
-import com.epam.esm.entity.Order;
+
 import com.epam.esm.entity.Order_;
 import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import javax.persistence.metamodel.SingularAttribute;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
@@ -17,7 +17,8 @@ import java.util.Optional;
 public class OrderCriteria extends Criteria{
 
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
-    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.now();
+    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.parse("2025-01-01T00:00:00");
+
 
     private SortingField sortingField;
 
@@ -78,11 +79,11 @@ public class OrderCriteria extends Criteria{
     }
 
     public enum SortingField {
-        ID(Order_.id), COST(Order_.cost), TIME(Order_.timeOfPurchase);
+        ID(Order_.ID), COST(Order_.COST), TIME(Order_.TIME_OF_PURCHASE);
 
-        public final SingularAttribute<Order, ?> attribute;
+        public final String attribute;
 
-        SortingField(SingularAttribute<Order, ?> attribute) {
+        SortingField(String attribute) {
             this.attribute = attribute;
         }
     }

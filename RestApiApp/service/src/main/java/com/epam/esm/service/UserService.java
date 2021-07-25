@@ -18,19 +18,19 @@ public interface UserService {
      * @param pageSize - size of one page
      * @param pageNumber - number of a current page
      * @return page with users found
-     * @throws ServiceException if criteria or pagination params are incorrect or some troubles in data source were happened
+     * @throws ServiceException if criteria or pagination params are incorrect
      */
-    PagedDTO<User> get(UserCriteria criteria, int pageSize, int pageNumber) throws ServiceException;
+    PagedDTO<User> get(UserCriteria criteria, int pageSize, int pageNumber);
 
     /**
      * Gets user by its email
      * @param email email of a user
      * @return user found
-     * @throws ServiceException if email is incorrect or some troubles in data source were happened
+     * @throws ServiceException if email is incorrect
      */
-    User getByEmail(String email) throws ServiceException;
+    User getByEmail(String email);
 
-    User getById(Long id) throws ServiceException;
+    User getById(Long id);
 
-    void registration(UserDTO userDTO) throws ServiceException;
+    void registration(UserDTO userDTO);
 }

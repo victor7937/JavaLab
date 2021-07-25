@@ -12,14 +12,13 @@ import com.epam.esm.exception.ServiceException;
  */
 public interface OrderService {
 
-
     /**
      * Create a new order of user for gift certificate
      * @param orderDTO - dto that contains users email and certificates id
      * @return created order
-     * @throws ServiceException if dto data was incorrect or some troubles in data source were happened
+     * @throws ServiceException if dto data was incorrect
      */
-    Order makeOrder(OrderDTO orderDTO) throws ServiceException;
+    Order makeOrder(OrderDTO orderDTO);
 
     /**
      * Gets page with orders of a user from data source
@@ -28,16 +27,16 @@ public interface OrderService {
      * @param pageNumber - number of a current page
      * @param userId - id of user for getting its orders
      * @return page with orders found
-     * @throws ServiceException if criteria or pagination params are incorrect or some troubles in data source were happened
+     * @throws ServiceException if criteria or pagination params are incorrect
      */
-    PagedDTO<Order> getOrdersOfUser(Long userId, OrderCriteria criteria, int pageSize, int pageNumber) throws ServiceException;
+    PagedDTO<Order> getOrdersOfUser(Long userId, OrderCriteria criteria, int pageSize, int pageNumber);
 
     /**
      * Get order of a user by its id
      * @param userId id of a user
      * @param orderId id of users order
      * @return order found
-     * @throws ServiceException if email or id are incorrect, order wasn't found or some troubles in data source were happened
+     * @throws ServiceException if email or id are incorrect, order wasn't found
      */
-    Order getOrder(Long userId, Long orderId) throws ServiceException;
+    Order getOrder(Long userId, Long orderId);
 }

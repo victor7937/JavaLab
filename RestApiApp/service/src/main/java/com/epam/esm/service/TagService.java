@@ -17,32 +17,31 @@ public interface TagService {
      * @param pageSize - size of one page
      * @param pageNumber - number of a current page
      * @return page with tags found
-     * @throws ServiceException if pagination params are incorrect or some troubles in data source were happened
+     * @throws ServiceException if pagination params are incorrect
      */
-    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws ServiceException;
+    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber);
 
     /**
      * Get one tag if id is correct
      * @param id - id of the tag
      * @return tag found
-     * @throws ServiceException if id is incorrect or some troubles in data source were happened
+     * @throws ServiceException if id is incorrect
      */
-    Tag getById(Long id) throws ServiceException;
+    Tag getById(Long id);
 
     /**
      * Add a new tag if such tag is not exist in data source
      * @param tag - tag for adding
-     * @throws ServiceException when params is incorrect, such tag exists in data source or some
-     * troubles in data source were happened
+     * @throws ServiceException when params is incorrect, such tag exists in data source
      */
-    void add(Tag tag) throws ServiceException;
+    void add(Tag tag);
 
     /**
      * Delete tag
      * @param id - id of the tag for deleting
-     * @throws ServiceException if id is incorrect or some troubles in data source were happened
+     * @throws ServiceException if id is incorrect
      */
-    void delete(Long id) throws ServiceException;
+    void delete(Long id);
 
 
     /**

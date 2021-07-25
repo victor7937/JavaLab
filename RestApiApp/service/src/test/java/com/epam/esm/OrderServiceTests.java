@@ -1,38 +1,7 @@
 package com.epam.esm;
 
-import com.epam.esm.criteria.OrderCriteria;
-import com.epam.esm.dto.OrderDTO;
-import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.*;
-import com.epam.esm.entity.Order;
-import com.epam.esm.exception.*;
-import com.epam.esm.repository.GiftCertificateRepository;
-import com.epam.esm.repository.OrderRepository;
-import com.epam.esm.repository.UserRepository;
-import com.epam.esm.service.OrderService;
-import com.epam.esm.service.impl.OrderServiceImpl;
-import com.epam.esm.validator.impl.OrderCriteriaValidator;
-import com.epam.esm.validator.impl.OrderValidator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.hateoas.PagedModel;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 //
 //@ExtendWith(MockitoExtension.class)
 //public class OrderServiceTests {

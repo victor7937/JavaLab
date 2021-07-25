@@ -49,7 +49,7 @@ public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, O
     @Override
     public PagedModel<OrderModel> toPagedModel(Collection<? extends Order> entities, PagedModel.PageMetadata metadata, Criteria criteria) {
         PagedModel<OrderModel> pagedModel = PagedModel.of(entities.stream().map(this::toModel).collect(Collectors.toList()), metadata);
-        Order order = entities.stream().findAny().get();
+        Order order = entities.stream().collect(Collectors.toList()).get(0);
         addToPagesLinks(pagedModel, order.getUser().getId(), metadata,criteria.getCriteriaAsMap());
         return pagedModel;
     }

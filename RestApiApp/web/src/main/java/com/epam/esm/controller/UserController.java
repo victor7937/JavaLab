@@ -107,6 +107,7 @@ public class UserController {
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
+        //pagedDTO.getPage().forEach(o -> log.info(o.getId().toString()));
         return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
