@@ -1,2 +1,2 @@
-# Module 3
-## Rest Api Advanced
+# Module 4
+## Authentication & Spring Security
