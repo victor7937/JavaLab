@@ -60,14 +60,14 @@ public class TagServiceImpl implements TagService{
 
     @Override
     @Transactional
-    public void add(Tag tag){
+    public Tag add(Tag tag){
         if (!validator.validate(tag)){
             throw new IncorrectDataServiceException(INCORRECT_TAG_MSG);
         }
         if (tagRepository.existsByName(tag.getName())){
             throw new AlreadyExistServiceException(String.format(ALREADY_EXIST_MSG, tag.getName()));
         }
-        tagRepository.save(tag);
+        return tagRepository.save(tag);
     }
 
     @Override

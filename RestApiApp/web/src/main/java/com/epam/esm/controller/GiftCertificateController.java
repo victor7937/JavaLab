@@ -172,5 +172,5 @@ public class GiftCertificateController {
                     .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
         }
     }
-    
+
 }

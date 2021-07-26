@@ -86,6 +86,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void registration(UserDTO userDTO){
+        if (userDTO == null){
+            throw new IncorrectDataServiceException(INCORRECT_PARAMS_MSG);
+        }
         String email = userDTO.getEmail();
         String password = userDTO.getPassword();
         if (!(serviceValidator.isStringIdValid(email) && password != null && !password.isBlank())){

@@ -67,9 +67,8 @@ public class TagController {
      */
     @PostMapping()
     @PreAuthorize("hasAuthority('tags:write')")
-    public ResponseEntity<Object> addNewTag(@RequestBody Tag tag) {
-        tagService.add(tag);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Tag addNewTag(@RequestBody Tag tag) {
+        return tagService.add(tag);
     }
 
     /**

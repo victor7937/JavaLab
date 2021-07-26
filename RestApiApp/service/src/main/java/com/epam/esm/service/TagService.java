@@ -34,7 +34,7 @@ public interface TagService {
      * @param tag - tag for adding
      * @throws ServiceException when params is incorrect, such tag exists in data source
      */
-    void add(Tag tag);
+    Tag add(Tag tag);
 
     /**
      * Delete tag
