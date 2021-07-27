@@ -4,7 +4,6 @@ import com.epam.esm.exception.*;
 import com.epam.esm.message.ResponseExceptionMessage;
 
 import com.epam.esm.security.exception.JwtAuthenticationException;
-import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -58,11 +57,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = IncorrectPageServiceException.class)
-    public ResponseEntity<ResponseExceptionMessage> handleException(IncorrectPageServiceException e){
-        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(value = ServiceException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(ServiceException e){
         log.error(EXCEPTION_CAUGHT_MSG, e);
@@ -81,7 +75,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = BadCredentialsException.class)
     public ResponseEntity<ResponseExceptionMessage> handleException(BadCredentialsException e){
-        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.FORBIDDEN, "Wrong email or password"), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(new ResponseExceptionMessage(HttpStatus.UNAUTHORIZED, "Wrong email or password"), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)

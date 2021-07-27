@@ -34,7 +34,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
-    private static final String NO_SUCH_PAGE_MSG = "Page with number %s doesn't exist";
     private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
     private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
 
@@ -59,7 +58,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         try {
             pagedDTO = giftCertificateRepository.getByCriteria(certificateCriteria, pageSize, pageNumber);
         } catch (IncorrectPageRepositoryException e) {
-            throw new IncorrectPageServiceException(String.format(NO_SUCH_PAGE_MSG, pageNumber), e);
+            return new PagedDTO<>();
         }
         return pagedDTO;
     }

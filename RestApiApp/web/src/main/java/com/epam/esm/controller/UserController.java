@@ -41,8 +41,7 @@ public class UserController {
     private final UserAssembler userAssembler;
     private final OrderAssembler orderAssembler;
     private final UserAuthenticationProvider authenticationProvider;
-    
-    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in User Controller";
+
 
     @Autowired
     public UserController(UserService userService, OrderService orderService, UserAssembler userAssembler,
@@ -107,7 +106,6 @@ public class UserController {
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
-        //pagedDTO.getPage().forEach(o -> log.info(o.getId().toString()));
         return orderAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
@@ -124,6 +122,11 @@ public class UserController {
         return orderAssembler.toModel(order);
     }
 
+    /**
+     * Endpoint for authenticated user to get self info
+     * @param request - current HttpServletRequest
+     * @return users info
+     */
     @GetMapping(value = "/me", produces = { "application/prs.hal-forms+json" })
     @PreAuthorize("hasAuthority('users:read-self')")
     public UserModel getSelfUser(HttpServletRequest request){

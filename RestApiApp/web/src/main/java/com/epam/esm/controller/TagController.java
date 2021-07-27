@@ -24,8 +24,6 @@ public class TagController {
 
     private final TagService tagService;
 
-    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Tag Controller";
-
     @Autowired
     public TagController(TagService tagService) {
         this.tagService = tagService;

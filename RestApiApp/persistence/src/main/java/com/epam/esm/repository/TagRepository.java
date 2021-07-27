@@ -16,12 +16,33 @@ import java.util.Optional;
 @Repository
 public interface TagRepository extends JpaRepository<Tag,Long> {
 
+    /**
+     * Gets tag by its name from database if it exists
+     * @param name - name of the tag
+     * @return optional that contains a tag or empty Optional if it wasn't found
+     */
     Optional<Tag> findTagByName(String name);
 
+    /**
+     * Checks if tag name exists
+     * @param name - name of the tag
+     * @return true if tag exists, else false
+     */
     boolean existsByName(String name);
 
+    /**
+     * Gets page of tags by name part
+     * @param namePart - part of tags name
+     * @param pageable - contains info about page size, current page and sorting params
+     * @return page of tags
+     */
     Page<Tag> getTagsByNameLike(String namePart, Pageable pageable);
 
+
+    /**
+     * Gets the most widely used tag of a user with the highest cost of all orders from database
+     * @return Tag found
+     */
     @Query(value = "SELECT t.id, t.name, COUNT(t.id) as t_count from users u" +
             " join orders o on u.id = o.users_id" +
             " join gift_certificate gc on gc.id = o.certificate_id" +

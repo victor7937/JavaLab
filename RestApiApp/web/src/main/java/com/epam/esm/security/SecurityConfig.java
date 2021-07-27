@@ -1,10 +1,10 @@
 package com.epam.esm.security;
 
 
+import com.epam.esm.security.filter.ExceptionResolverFilter;
 import com.epam.esm.security.jwt.JwtConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -14,17 +14,21 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
-@Configuration
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtConfigurer jwtConfigurer;
 
+    private final ExceptionResolverFilter exceptionResolverFilter;
+
     @Autowired
-    public SecurityConfig(JwtConfigurer jwtConfigurer) {
+    public SecurityConfig(JwtConfigurer jwtConfigurer, ExceptionResolverFilter exceptionResolverFilter) {
         this.jwtConfigurer = jwtConfigurer;
+        this.exceptionResolverFilter = exceptionResolverFilter;
     }
 
     @Override
@@ -41,7 +45,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .authenticated()
                 .and()
+                .addFilterBefore(exceptionResolverFilter, LogoutFilter.class)
                 .apply(jwtConfigurer);
+
     }
 
     @Bean
