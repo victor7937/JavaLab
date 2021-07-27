@@ -22,7 +22,7 @@ public class UserCriteria extends Criteria {
 
     private SortingOrder sortingOrder;
 
-    public UserCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<String> firstNamePart,
+    private UserCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<String> firstNamePart,
                         Optional<String> lastNamePart){
         this.sortingField = sortingField.orElse(SortingField.ID);
         this.sortingOrder = sortingOrder.orElse(SortingOrder.ASC);
@@ -31,13 +31,8 @@ public class UserCriteria extends Criteria {
     }
 
     public static UserCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<SortingField> sortingField = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> SortingField.valueOf(s.toUpperCase()));
-
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
+        Optional<SortingField> sortingField = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
         Optional<String> namePart = Optional.ofNullable(criteriaParams.get(RequestParams.FIRST_NAME.value));
         Optional<String> surnamePart = Optional.ofNullable(criteriaParams.get(RequestParams.LAST_NAME.value));

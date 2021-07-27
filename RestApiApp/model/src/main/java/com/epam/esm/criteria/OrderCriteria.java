@@ -32,7 +32,7 @@ public class OrderCriteria extends Criteria{
 
     private LocalDateTime maxTime;
 
-    public OrderCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<Float> minCost,
+    private OrderCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<Float> minCost,
                          Optional<Float> maxCost, Optional<LocalDateTime> minTime, Optional<LocalDateTime> maxTime){
         this.sortingField = sortingField.orElse(SortingField.ID);
         this.sortingOrder = sortingOrder.orElse(SortingOrder.ASC);
@@ -44,14 +44,8 @@ public class OrderCriteria extends Criteria{
     }
 
     public static OrderCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<SortingField> sortingField = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> SortingField.valueOf(s.toUpperCase()));
-
-
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
+        Optional<SortingField> sortingField = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
         Optional<Float> minCost = Optional.ofNullable(criteriaParams.get(RequestParams.COST_GTE.value))
                 .filter(NumberUtils::isCreatable)

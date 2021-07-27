@@ -53,13 +53,8 @@ public class CertificateCriteria extends Criteria {
     }
 
     public static CertificateCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<CertificateCriteria.SortingField> field = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> CertificateCriteria.SortingField.valueOf(s.toUpperCase()));
-
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
+        Optional<SortingField> field = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
         Optional<Set<String>> tagNames = Optional.ofNullable(criteriaParams.get(RequestParams.TAGS.value))
                 .map(s -> Set.of(s.split(",")));
