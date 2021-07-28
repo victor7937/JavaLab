@@ -17,11 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
+
+
 
     private final GiftCertificateRepository giftCertificateRepository;
 
@@ -32,8 +36,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final CriteriaValidator<CertificateCriteria> criteriaValidator;
 
 
+    private static final String NAME_AFTER_DELETE = "DELETED";
     private static final String INVALID_ID_MSG = "Certificate id is invalid";
     private static final String NOT_EXIST_MSG = "Gift Certificate id with number %s doesn't exist";
+    private static final String ALREADY_DELETED_MSG = "The certificate with number %s has already been deleted";
     private static final String INCORRECT_CERTIFICATE_MSG = "Incorrect certificate data";
     private static final String INCORRECT_PARAMS_MSG = "Incorrect request parameter values";
 
@@ -98,10 +104,17 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         if (!validator.isLongIdValid(id)){
             throw new IncorrectDataServiceException(INVALID_ID_MSG);
         }
-        if (!giftCertificateRepository.existsById(id)){
-            throw new NotFoundServiceException(String.format(NOT_EXIST_MSG, id));
+        GiftCertificate giftCertificate = giftCertificateRepository.findById(id).orElseThrow(() ->
+                new NotFoundServiceException(String.format(NOT_EXIST_MSG, id)));
+        if (giftCertificate.getDeleted()){
+            throw new AlreadyExistServiceException(String.format(ALREADY_DELETED_MSG, id));
         }
-        giftCertificateRepository.deleteById(id);
+        giftCertificate.setDeleted(true);
+        giftCertificate.setName(NAME_AFTER_DELETE);
+        giftCertificate.setDescription(null);
+        giftCertificate.setPrice(null);
+        giftCertificate.setDuration(null);
+        giftCertificate.setTags(Collections.emptySet());
     }
 
     @Override
@@ -111,7 +124,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             throw new IncorrectDataServiceException(INCORRECT_CERTIFICATE_MSG);
         }
 
-        GiftCertificate current = getById(id);
+        GiftCertificate current = giftCertificateRepository.findByIdAndDeletedIsFalse(id).orElseThrow(()
+                -> new NotFoundServiceException(String.format(NOT_EXIST_MSG, id)));
+
         PartialUpdater<GiftCertificate, CertificateDTO> partialUpdater = new PartialUpdater<>(current, modified,
                 List.of(GiftCertificate_.NAME, GiftCertificate_.DESCRIPTION, GiftCertificate_.PRICE, GiftCertificate_.DURATION));
         try {

@@ -2,6 +2,7 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.OrderDTO;
+import com.epam.esm.dto.OrderRequestDTO;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
@@ -11,6 +12,7 @@ import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
 import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.model.GiftCertificateModel;
 import com.epam.esm.hateoas.model.OrderModel;
+import com.epam.esm.security.provider.AuthenticationAndTokenProvider;
 import com.epam.esm.service.GiftCertificateService;
 
 
@@ -19,7 +21,6 @@ import com.epam.esm.util.PatchUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
@@ -45,7 +46,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  */
 @RestController
 @RequestMapping("/certificates")
-@Slf4j
 public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
@@ -56,15 +56,18 @@ public class GiftCertificateController {
 
     private final OrderService orderService;
 
+    private final AuthenticationAndTokenProvider authAndTokenProvider;
+
 
     @Autowired
     public GiftCertificateController(GiftCertificateService giftCertificateService,
                                      GiftCertificateAssembler certificateAssembler,
-                                     OrderAssembler orderAssembler, OrderService orderService) {
+                                     OrderAssembler orderAssembler, OrderService orderService, AuthenticationAndTokenProvider authAndTokenProvider) {
         this.giftCertificateService = giftCertificateService;
         this.certificateAssembler = certificateAssembler;
         this.orderAssembler = orderAssembler;
         this.orderService = orderService;
+        this.authAndTokenProvider = authAndTokenProvider;
     }
 
     /**
@@ -130,15 +133,19 @@ public class GiftCertificateController {
      */
     @PreAuthorize("hasAuthority('certificates:write')")
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json",  produces = { "application/prs.hal-forms+json" })
-    public GiftCertificateModel updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
+    public GiftCertificateModel updateCertificate(@PathVariable Long id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
         ModelMapper modelMapper = new ModelMapper();
-        CertificateDTO current = modelMapper.map(giftCertificateService.getById(id), CertificateDTO.class);
+        GiftCertificate giftCertificate = giftCertificateService.getById(id);
+        if (giftCertificate.getDeleted()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
+        }
+        CertificateDTO current = modelMapper.map(giftCertificate, CertificateDTO.class);
         CertificateDTO modified;
         try {
             modified = PatchUtil.applyPatch(patch, current, CertificateDTO.class);
         } catch (JsonPatchException | JsonProcessingException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "JsonPatch error");
         }
         certificateForResponse = giftCertificateService.update(modified, id);
         return certificateAssembler.toModel(certificateForResponse);
@@ -146,30 +153,31 @@ public class GiftCertificateController {
 
     /**
      * Post method for buying gift certificate by user
-     * @param orderDTO contains users email and certificates id
+     * @param orderRequest contains certificates id
      * @return Order with all data about purchase
      */
-    @PreAuthorize("hasAuthority('certificates:buy') and authentication.name == #orderDTO.email")
+    @PreAuthorize("hasAuthority('certificates:buy')")
     @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
-    public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
+    public OrderModel buyCertificate(@RequestBody OrderRequestDTO orderRequest){
+        OrderDTO orderDTO = new OrderDTO(authAndTokenProvider.getUserName(), orderRequest.getId());
         Order orderForResponse = orderService.makeOrder(orderDTO);
         return orderAssembler.toModel(orderForResponse);
     }
 
     private void addAffordances(GiftCertificateModel model){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || (authentication instanceof AnonymousAuthenticationToken) || !authentication.isAuthenticated()) {
+
+        if (!authAndTokenProvider.hasAuthentication()) {
             return;
         }
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority(Permission.CERTIFICATES_WRITE.name))){
+        if (authAndTokenProvider.containsAuthority(Permission.CERTIFICATES_WRITE.name)){
             model.mapLink(IanaLinkRelations.SELF, l -> l
                     .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
-                    .andAffordance(afford(methodOn(GiftCertificateController.class).updateCustomer(model.getId(),null)))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).updateCertificate(model.getId(),null)))
                     .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
-                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(new OrderRequestDTO()))));
         } else {
             model.mapLink(IanaLinkRelations.SELF, l -> l
-                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(new OrderRequestDTO()))));
         }
     }
 

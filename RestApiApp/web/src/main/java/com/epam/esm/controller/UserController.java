@@ -9,7 +9,7 @@ import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.assembler.UserAssembler;
 import com.epam.esm.hateoas.model.OrderModel;
 import com.epam.esm.hateoas.model.UserModel;
-import com.epam.esm.security.provider.UserAuthenticationProvider;
+import com.epam.esm.security.provider.AuthenticationAndTokenProvider;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.Map;
 
 
@@ -40,17 +41,17 @@ public class UserController {
     private final OrderService orderService;
     private final UserAssembler userAssembler;
     private final OrderAssembler orderAssembler;
-    private final UserAuthenticationProvider authenticationProvider;
+    private final AuthenticationAndTokenProvider authAndTokenProvider;
 
 
     @Autowired
     public UserController(UserService userService, OrderService orderService, UserAssembler userAssembler,
-                          OrderAssembler orderAssembler, UserAuthenticationProvider authenticationProvider) {
+                          OrderAssembler orderAssembler, AuthenticationAndTokenProvider authAndTokenProvider) {
         this.userService = userService;
         this.orderService = orderService;
         this.userAssembler = userAssembler;
         this.orderAssembler = orderAssembler;
-        this.authenticationProvider = authenticationProvider;
+        this.authAndTokenProvider = authAndTokenProvider;
     }
 
     /**
@@ -124,13 +125,12 @@ public class UserController {
 
     /**
      * Endpoint for authenticated user to get self info
-     * @param request - current HttpServletRequest
      * @return users info
      */
     @GetMapping(value = "/me", produces = { "application/prs.hal-forms+json" })
     @PreAuthorize("hasAuthority('users:read-self')")
-    public UserModel getSelfUser(HttpServletRequest request){
-        String email = authenticationProvider.getUsernameFromRequest(request);
+    public UserModel getSelfUser(Principal principal){
+        String email = principal.getName();
         User user = userService.getByEmail(email);
         return userAssembler.toModel(user);
     }

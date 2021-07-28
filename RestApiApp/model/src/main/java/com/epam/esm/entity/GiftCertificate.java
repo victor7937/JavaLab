@@ -73,6 +73,9 @@ public class GiftCertificate implements Serializable {
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
+    @Column(name = "deleted")
+    private Boolean deleted;
+
     public GiftCertificate(Long id, String name, String description, Float price, Integer duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
         this.id = id;
         this.name = name;

@@ -68,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByEmail(orderDTO.getEmail()).orElseThrow(() -> new NotFoundServiceException(
                 String.format(USERS_EMAIL_NOT_EXISTS_MSG, orderDTO.getEmail())));
 
-        GiftCertificate certificate = giftCertificateRepository.findById(orderDTO.getId()).orElseThrow(() ->
+        GiftCertificate certificate = giftCertificateRepository.findByIdAndDeletedIsFalse(orderDTO.getId()).orElseThrow(() ->
                 new NotFoundServiceException(String.format(CERTIFICATE_NOT_EXIST_MSG, orderDTO.getId())));
 
         Order order = new Order();

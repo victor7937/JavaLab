@@ -47,7 +47,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(exceptionResolverFilter, LogoutFilter.class)
                 .apply(jwtConfigurer);
-
     }
 
     @Bean

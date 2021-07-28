@@ -4,7 +4,9 @@ import com.epam.esm.security.AuthDTO;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface UserAuthenticationProvider {
+public interface AuthenticationAndTokenProvider {
     String authenticate(AuthDTO authDTO);
-    String getUsernameFromRequest(HttpServletRequest request);
+    String getUserName();
+    Boolean hasAuthentication();
+    Boolean containsAuthority(String authority);
 }

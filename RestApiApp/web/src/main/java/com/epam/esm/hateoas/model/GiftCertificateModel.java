@@ -2,6 +2,7 @@ package com.epam.esm.hateoas.model;
 
 import com.epam.esm.entity.Tag;
 import com.epam.esm.util.CustomLocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GiftCertificateModel extends RepresentationModel<GiftCertificateModel> {
 
     private Long id;

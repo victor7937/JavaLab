@@ -79,6 +79,7 @@ public class PagingAndFilteringCertificateRepositoryImpl implements PagingAndFil
     private Predicate createPredicates(CertificateCriteria criteria, Root<GiftCertificate> gcRoot){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         Predicate conditions = criteriaBuilder.conjunction();
+        conditions = criteriaBuilder.and(conditions, criteriaBuilder.equal(gcRoot.get(GiftCertificate_.deleted),false));
         if (!criteria.getNamePart().isBlank()){
             conditions = criteriaBuilder.and(conditions, criteriaBuilder.like(gcRoot.get(GiftCertificate_.name),"%"
                     + criteria.getNamePart() + "%"));

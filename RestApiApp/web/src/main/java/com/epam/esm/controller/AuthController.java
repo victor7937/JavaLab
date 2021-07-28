@@ -1,28 +1,26 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.UserDTO;
-import com.epam.esm.exception.ServiceException;
 import com.epam.esm.security.AuthDTO;
 import com.epam.esm.security.AuthResponse;
-import com.epam.esm.security.provider.UserAuthenticationProviderImpl;
+import com.epam.esm.security.provider.AuthenticationAndTokenProvider;
 import com.epam.esm.service.UserService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Slf4j
 public class AuthController {
 
     private final UserService userService;
-    private final UserAuthenticationProviderImpl authenticationProvider;
+    private final AuthenticationAndTokenProvider authAndTokenProvider;
 
     @Autowired
-    public AuthController(UserService userService, UserAuthenticationProviderImpl authenticationProvider) {
+    public AuthController(UserService userService, AuthenticationAndTokenProvider authAndTokenProvider) {
         this.userService = userService;
-        this.authenticationProvider = authenticationProvider;
+        this.authAndTokenProvider = authAndTokenProvider;
     }
 
     /**
@@ -32,7 +30,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthDTO authDTO){
-        return new AuthResponse(authDTO.getEmail(), authenticationProvider.authenticate(authDTO));
+        return new AuthResponse(authDTO.getEmail(), authAndTokenProvider.authenticate(authDTO));
     }
 
 
@@ -43,10 +41,9 @@ public class AuthController {
      * @return response with current users email and JWT token
      */
     @PostMapping("/signup")
-    public AuthResponse signup(@RequestBody UserDTO userDTO){
+    public ResponseEntity<?> signup(@RequestBody UserDTO userDTO){
         userService.registration(userDTO);
-        AuthDTO authDTO = new AuthDTO(userDTO.getEmail(), userDTO.getPassword());
-        return new AuthResponse(userDTO.getEmail(), authenticationProvider.authenticate(authDTO));
+        return ResponseEntity.ok().build();
     }
 
 }
