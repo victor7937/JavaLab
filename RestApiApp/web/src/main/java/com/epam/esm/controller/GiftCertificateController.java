@@ -96,7 +96,9 @@ public class GiftCertificateController {
     public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
         GiftCertificate giftCertificate = giftCertificateService.getById(id);
         GiftCertificateModel certificateModel = certificateAssembler.toModel(giftCertificate);
-        addAffordances(certificateModel);
+        if (!giftCertificate.getDeleted()){
+            addAffordances(certificateModel);
+        }
         return certificateModel;
     }
 

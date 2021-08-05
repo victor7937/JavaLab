@@ -1,5 +1,7 @@
 package com.epam.esm;
 
+import com.epam.esm.generating.TagsGenerator;
+import com.epam.esm.util.ApplicationContextProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

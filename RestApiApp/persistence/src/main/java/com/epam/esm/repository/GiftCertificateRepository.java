@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface GiftCertificateRepository extends JpaRepository<GiftCertificate, Long>, PagingAndFilteringCertificateRepository {
 
     /**
-     * Checks if certificate exists and is not deleted
-     * @param id - id of certificate
-     * @return true if certificates id exists and certificate is not deleted
+     * Find certificate by its id if it is not deleted
+     * @param id - id of the certificate
+     * @return Optional that contains a certificate or empty optional if it is not found or deleted
      */
     Optional<GiftCertificate> findByIdAndDeletedIsFalse(Long id);
 }

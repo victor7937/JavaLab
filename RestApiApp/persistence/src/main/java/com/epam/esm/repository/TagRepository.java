@@ -23,6 +23,7 @@ public interface TagRepository extends JpaRepository<Tag,Long> {
      */
     Optional<Tag> findTagByName(String name);
 
+
     /**
      * Checks if tag name exists
      * @param name - name of the tag

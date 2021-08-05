@@ -1,7 +1,5 @@
 package com.epam.esm.security.jwt;
 
-import com.epam.esm.entity.Role;
-import com.epam.esm.entity.User_;
 import com.epam.esm.security.exception.JwtAuthenticationException;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Qualifier;

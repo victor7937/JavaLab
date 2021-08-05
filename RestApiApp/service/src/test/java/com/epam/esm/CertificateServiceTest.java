@@ -88,21 +88,20 @@ public class CertificateServiceTest {
 
         @Test
         void correctDeletingShouldNotRaiseException(){
-            when(repository.existsById(anyLong())).thenReturn(true);
-            doNothing().when(repository).deleteById(idSample);
+            certificateSample.setDeleted(false);
+            when(repository.findById(anyLong())).thenReturn(Optional.of(certificateSample));
             service.delete(idSample);
-            verify(repository).deleteById(idSample);
         }
 
         @Test
         void gettingWithNotExistedIdShouldRaiseException(){
-            when(repository.existsById(anyLong())).thenReturn(false);
+            when(repository.findById(anyLong())).thenReturn(Optional.empty());
             assertThrows(NotFoundServiceException.class, () -> service.delete(notExistingIdSample));
             verify(repository, never()).deleteById(notExistingIdSample);
         }
 
         @Test
-        void gettingWithIncorrectIdShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectIdShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(-1L)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(null))
@@ -147,7 +146,7 @@ public class CertificateServiceTest {
         }
 
         @Test
-        void addingIncorrectGiftCertificateShouldRaiseException() throws RepositoryException {
+        void addingIncorrectGiftCertificateShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.add(null)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new CertificateDTO("","test1",1.1f,1, new HashSet<>()))),
@@ -166,14 +165,14 @@ public class CertificateServiceTest {
     class UpdatingTests{
 
         @Test
-        void correctUpdatingShouldReturnModifiedGiftCertificate() throws RepositoryException, ServiceException {
-            when(repository.findById(anyLong())).thenReturn(Optional.of(certificateSample2));
+        void correctUpdatingShouldReturnModifiedGiftCertificate() {
+            when(repository.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(certificateSample2));
             assertEquals(certificateSample2, service.update(certificateDTOSample, 1L));
-            verify(repository).findById(anyLong());
+            verify(repository).findByIdAndDeletedIsFalse(anyLong());
        }
 
        @Test
-       void updatingWithIncorrectValuesShouldRaiseException() throws RepositoryException {
+       void updatingWithIncorrectValuesShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update(null, 1L)),
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateDTOSample, null)),

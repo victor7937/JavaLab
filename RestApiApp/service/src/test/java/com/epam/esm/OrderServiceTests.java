@@ -161,7 +161,7 @@ public class OrderServiceTests {
         void correctOrderingShouldReturnCompleteOrder () {
             when(orderRepository.save(any(Order.class))).thenReturn(completeOrder);
             when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userFound));
-            when(certificateRepository.findById(anyLong())).thenReturn(Optional.of(giftCertificateFound));
+            when(certificateRepository.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(giftCertificateFound));
             assertEquals(completeOrder, service.makeOrder(sampleDTO));
             verify(orderRepository).save(any(Order.class));
         }
