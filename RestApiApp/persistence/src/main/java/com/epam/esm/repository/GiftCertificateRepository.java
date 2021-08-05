@@ -1,52 +1,21 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.dto.CertificateDTO;
-import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.exception.RepositoryException;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * Repository for manipulating certificate data in database
  */
-public interface GiftCertificateRepository {
+@Repository
+public interface GiftCertificateRepository extends JpaRepository<GiftCertificate, Long>, PagingAndFilteringCertificateRepository {
 
     /**
-     * Get gift certificates with some criteria
-     * @param certificateCriteria - searching certificates criteria
-     * @param pageSize - size of one page
-     * @param pageNumber - number of a current page
-     * @return page with certificates which match the criteria
+     * Find certificate by its id if it is not deleted
+     * @param id - id of the certificate
+     * @return Optional that contains a certificate or empty optional if it is not found or deleted
      */
-    PagedDTO<GiftCertificate> getByCriteria(CertificateCriteria certificateCriteria, int pageSize, int pageNumber) throws RepositoryException;
-
-    /**
-     * Get one gift certificate by id if such id exists
-     * @param id - id of gift certificate
-     * @return certificate found
-     * @throws RepositoryException if such id exists or some troubles in database were happened
-     */
-    GiftCertificate getById(Long id) throws RepositoryException;
-
-    /**
-     * Add new gift certificate to database
-     * @param giftCertificate - certificate for adding to database
-     * @return Added gift certificate with new generated data
-     * @throws RepositoryException if some troubles in database were happened
-     */
-    GiftCertificate add(CertificateDTO giftCertificate) throws RepositoryException;
-
-    /**
-     * Delete gift certificate from database
-     * @param id - id of gift certificate for deleting
-     * @throws RepositoryException if such id exists or some troubles in database were happened
-     */
-    void delete(Long id) throws RepositoryException;
-
-    /**
-     * @param modified - gift certificate after modifying
-     * @return modified gift certificate with some generated data
-     * @throws RepositoryException if some troubles in database were happened
-     */
-    GiftCertificate update(CertificateDTO modified, Long id) throws RepositoryException;
+    Optional<GiftCertificate> findByIdAndDeletedIsFalse(Long id);
 }

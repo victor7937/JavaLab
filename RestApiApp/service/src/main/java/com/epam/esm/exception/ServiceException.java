@@ -1,6 +1,6 @@
 package com.epam.esm.exception;
 
-public class ServiceException extends Exception{
+public class ServiceException extends RuntimeException{
 
     private static final long serialVersionUID = 3038117713318487466L;
 

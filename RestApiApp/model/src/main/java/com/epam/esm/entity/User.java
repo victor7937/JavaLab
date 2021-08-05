@@ -1,7 +1,12 @@
 package com.epam.esm.entity;
 
+import com.epam.esm.audit.GiftCertificateAuditListener;
+import com.epam.esm.audit.UserAuditListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.hateoas.RepresentationModel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,59 +15,59 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
+@EntityListeners(UserAuditListener.class)
+@NoArgsConstructor @Getter @Setter @ToString
 public class User implements Serializable  {
 
     private static final long serialVersionUID = -7299750937016032393L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "password")
+    private String password;
 
-    @Column(name = "surname")
-    private String surname;
+    @Column(name = "first_name")
+    private String firstName;
 
-    @OneToMany(mappedBy = "user")
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "active")
+    private boolean active;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
+
+
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.REFRESH, CascadeType.DETACH,
+            CascadeType.MERGE})
     @JsonIgnore
+    @ToString.Exclude
     private List<Order> orders = new ArrayList<>();
 
-    public User() {}
-
-    public User(String email, String name, String surname) {
+    public User(String email, String password, String firstName, String lastName) {
         this.email = email;
-        this.name = name;
-        this.surname = surname;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public User(String email, String firstName, String lastName) {
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     public void addOrder(Order order){
         this.orders.add(order);
         order.setUser(this);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
     }
 
     @Override
@@ -73,26 +78,9 @@ public class User implements Serializable  {
         return Objects.equals(email, user.email);
     }
 
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(email);
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", orders=" + orders +
-                '}';
-    }
 }

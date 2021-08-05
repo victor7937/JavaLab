@@ -1,34 +1,36 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.dto.CertificateDTO;
 import com.epam.esm.dto.OrderDTO;
+import com.epam.esm.dto.OrderRequestDTO;
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.criteria.CertificateCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
-import com.epam.esm.exception.IncorrectDataServiceException;
-import com.epam.esm.exception.IncorrectPageServiceException;
+import com.epam.esm.entity.Permission;
 import com.epam.esm.hateoas.assembler.GiftCertificateAssembler;
 import com.epam.esm.hateoas.assembler.OrderAssembler;
 import com.epam.esm.hateoas.model.GiftCertificateModel;
 import com.epam.esm.hateoas.model.OrderModel;
+import com.epam.esm.security.provider.AuthenticationAndTokenProvider;
 import com.epam.esm.service.GiftCertificateService;
-import com.epam.esm.exception.NotFoundServiceException;
-import com.epam.esm.exception.ServiceException;
+
 
 import com.epam.esm.service.OrderService;
 import com.epam.esm.util.PatchUtil;
-import com.epam.esm.util.StatusCodeGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -46,8 +48,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/certificates")
 public class GiftCertificateController {
 
-    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Certificate Controller";
-
     private final GiftCertificateService giftCertificateService;
 
     private final GiftCertificateAssembler certificateAssembler;
@@ -56,42 +56,34 @@ public class GiftCertificateController {
 
     private final OrderService orderService;
 
-    Logger logger = Logger.getLogger(GiftCertificateController.class);
+    private final AuthenticationAndTokenProvider authAndTokenProvider;
+
 
     @Autowired
     public GiftCertificateController(GiftCertificateService giftCertificateService,
                                      GiftCertificateAssembler certificateAssembler,
-                                     OrderAssembler orderAssembler, OrderService orderService) {
+                                     OrderAssembler orderAssembler, OrderService orderService, AuthenticationAndTokenProvider authAndTokenProvider) {
         this.giftCertificateService = giftCertificateService;
         this.certificateAssembler = certificateAssembler;
         this.orderAssembler = orderAssembler;
         this.orderService = orderService;
+        this.authAndTokenProvider = authAndTokenProvider;
     }
 
     /**
      * Get method for receiving paged list of certificates by some criteria
      * @return List of certificates in JSON
      */
+
     @GetMapping(produces = { "application/prs.hal-forms+json" })
     public PagedModel<GiftCertificateModel> getCertificates ( @RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                                               @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
-                                                              @RequestParam Map<String, String> criteriaParams) {
-        PagedDTO<GiftCertificate> pagedDTO;
+                                                              @RequestParam Map<String, String> criteriaParams){
         CertificateCriteria criteria = CertificateCriteria.createCriteria(criteriaParams);
-        try {
-             pagedDTO = giftCertificateService.get(criteria, size, page);
-        } catch (IncorrectPageServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        PagedDTO<GiftCertificate> pagedDTO = giftCertificateService.get(criteria, size, page);
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
-
         return certificateAssembler.toPagedModel(pagedDTO.getPage(), pagedDTO.getPageMetadata(), criteria);
     }
 
@@ -102,19 +94,11 @@ public class GiftCertificateController {
      */
     @GetMapping(value = "/{id}", produces = { "application/prs.hal-forms+json" })
     public GiftCertificateModel getCertificateById (@PathVariable("id") Long id){
-        GiftCertificate giftCertificate;
-        try {
-            giftCertificate = giftCertificateService.getById(id);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        GiftCertificate giftCertificate = giftCertificateService.getById(id);
         GiftCertificateModel certificateModel = certificateAssembler.toModel(giftCertificate);
-        addAffordances(certificateModel);
+        if (!giftCertificate.getDeleted()){
+            addAffordances(certificateModel);
+        }
         return certificateModel;
     }
 
@@ -124,19 +108,11 @@ public class GiftCertificateController {
      * @return certificate that was added in JSON
      */
     @PostMapping( produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('certificates:write')")
     public GiftCertificateModel addNewCertificate(@RequestBody CertificateDTO giftCertificate){
-        GiftCertificate certificateForResponse;
-        try {
-            certificateForResponse = giftCertificateService.add(giftCertificate);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        GiftCertificate certificateForResponse = giftCertificateService.add(giftCertificate);
         return certificateAssembler.toModel(certificateForResponse);
     }
-
 
     /**
      * Delete method for deleting one certificate by id if it exists
@@ -144,20 +120,11 @@ public class GiftCertificateController {
      * @return OK response if certificate was deleted
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('certificates:write')")
     public ResponseEntity<Object> deleteCertificate (@PathVariable("id") Long id){
-        try {
-            giftCertificateService.delete(id);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        giftCertificateService.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 
     /**
      * Patch method for modifying existed gift certificate.
@@ -166,52 +133,54 @@ public class GiftCertificateController {
      * @param patch - RFC6901 patch commands
      * @return modified certificate
      */
+    @PreAuthorize("hasAuthority('certificates:write')")
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json",  produces = { "application/prs.hal-forms+json" })
-    public GiftCertificateModel updateCustomer(@PathVariable Long id, @RequestBody JsonPatch patch) {
+    public GiftCertificateModel updateCertificate(@PathVariable Long id, @RequestBody JsonPatch patch) {
         GiftCertificate certificateForResponse;
-        try {
-            ModelMapper modelMapper = new ModelMapper();
-            CertificateDTO current = modelMapper.map(giftCertificateService.getById(id), CertificateDTO.class);
-            CertificateDTO modified = PatchUtil.applyPatch(patch, current, CertificateDTO.class);
-            certificateForResponse = giftCertificateService.update(modified, id);
-        } catch (NotFoundServiceException e){
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (JsonPatchException | JsonProcessingException | ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
+        ModelMapper modelMapper = new ModelMapper();
+        GiftCertificate giftCertificate = giftCertificateService.getById(id);
+        if (giftCertificate.getDeleted()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
         }
+        CertificateDTO current = modelMapper.map(giftCertificate, CertificateDTO.class);
+        CertificateDTO modified;
+        try {
+            modified = PatchUtil.applyPatch(patch, current, CertificateDTO.class);
+        } catch (JsonPatchException | JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "JsonPatch error");
+        }
+        certificateForResponse = giftCertificateService.update(modified, id);
         return certificateAssembler.toModel(certificateForResponse);
     }
 
     /**
      * Post method for buying gift certificate by user
-     * @param orderDTO contains users email and certificates id
+     * @param orderRequest contains certificates id
      * @return Order with all data about purchase
      */
+    @PreAuthorize("hasAuthority('certificates:buy')")
     @PostMapping(value = "/buy", produces = { "application/prs.hal-forms+json" })
-    public OrderModel buyCertificate(@RequestBody OrderDTO orderDTO){
-        Order orderForResponse;
-        try {
-            orderForResponse = orderService.makeOrder(orderDTO);
-        } catch (NotFoundServiceException e){
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+    public OrderModel buyCertificate(@RequestBody OrderRequestDTO orderRequest){
+        OrderDTO orderDTO = new OrderDTO(authAndTokenProvider.getUserName(), orderRequest.getId());
+        Order orderForResponse = orderService.makeOrder(orderDTO);
         return orderAssembler.toModel(orderForResponse);
     }
 
     private void addAffordances(GiftCertificateModel model){
-        model.mapLink(IanaLinkRelations.SELF, l -> l
-                .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).updateCustomer(model.getId(),null)))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
-                .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(null))));
+
+        if (!authAndTokenProvider.hasAuthentication()) {
+            return;
+        }
+        if (authAndTokenProvider.containsAuthority(Permission.CERTIFICATES_WRITE.name)){
+            model.mapLink(IanaLinkRelations.SELF, l -> l
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).addNewCertificate(null)))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).updateCertificate(model.getId(),null)))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).deleteCertificate(model.getId())))
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(new OrderRequestDTO()))));
+        } else {
+            model.mapLink(IanaLinkRelations.SELF, l -> l
+                    .andAffordance(afford(methodOn(GiftCertificateController.class).buyCertificate(new OrderRequestDTO()))));
+        }
     }
-    
+
 }

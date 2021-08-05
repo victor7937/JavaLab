@@ -1,40 +1,39 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.criteria.OrderCriteria;
-import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Order;
-import com.epam.esm.exception.RepositoryException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 /**
  * Repository for manipulating orders data in database
  */
-public interface OrderRepository {
-
-
-    /**
-     * Method for adding created order to database
-     * @param order order to persist
-     * @return created order with the generated data
-     */
-    Order makeOrder(Order order);
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Long> {
 
     /**
-     * Gets page with order of a user form database by criteria
-     * @param pageSize - size of one page
-     * @param pageNumber - number of a current page
-     * @param userEmail - email of a user for orders searching
-     * @return page with orders which match the criteria
-     * @throws RepositoryException if no such page or some troubles in database were happened
+     * Gets a page of users orders by params
+     * @param userId - id of a user
+     * @param minCost - minimal order cost
+     * @param maxCost - maximal order cost
+     * @param minTime - minimal time of purchase
+     * @param maxTime - maximal time of purchase
+     * @param pageable - contains info about page size, current page and sorting params
+     * @return Page of users orders
      */
-    PagedDTO<Order> getOrders(String userEmail, OrderCriteria criteria, int pageSize, int pageNumber) throws RepositoryException;
+    Page<Order> getOrdersByUser_IdAndCostBetweenAndTimeOfPurchaseBetween(Long userId, Float minCost, Float maxCost,
+                                                                         LocalDateTime minTime, LocalDateTime maxTime, Pageable pageable);
 
     /**
-     * Get order of a user by its id
-     * @param userEmail email of a user
-     * @param orderId id of users order
-     * @return order found
-     * @throws RepositoryException if order wasn't found or some troubles in database were happened
+     * Gets order of a user by its id
+     * @param userId id of an order
+     * @param orderId id of a user
+     * @return optional that contains an order or empty Optional if it wasn't found
      */
-    Order getOrder(String userEmail, Long orderId) throws RepositoryException;
+    Optional<Order> findOrderByUser_IdAndId(Long userId, Long orderId);
 }

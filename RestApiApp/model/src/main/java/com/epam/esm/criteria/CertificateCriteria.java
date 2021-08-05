@@ -2,6 +2,7 @@ package com.epam.esm.criteria;
 
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.GiftCertificate_;
+import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -13,10 +14,11 @@ import java.util.*;
 /**
  * Criteria for searching gift certificates
  */
+@Getter
 public class CertificateCriteria extends Criteria {
 
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
-    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.now();
+    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.parse("2025-01-01T00:00:00");
 
     private Set<String> tagNames;
 
@@ -51,13 +53,8 @@ public class CertificateCriteria extends Criteria {
     }
 
     public static CertificateCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<CertificateCriteria.SortingField> field = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> CertificateCriteria.SortingField.valueOf(s.toUpperCase()));
-
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
+        Optional<SortingField> field = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
         Optional<Set<String>> tagNames = Optional.ofNullable(criteriaParams.get(RequestParams.TAGS.value))
                 .map(s -> Set.of(s.split(",")));
@@ -76,14 +73,14 @@ public class CertificateCriteria extends Criteria {
         Optional<LocalDateTime> minDate;
         try {
             minDate = Optional.ofNullable(criteriaParams.get(RequestParams.CREATE_GTE.value)).map(LocalDateTime::parse);
-        } catch (DateTimeParseException e){
+        } catch (DateTimeParseException e) {
             minDate = Optional.empty();
         }
 
         Optional<LocalDateTime> maxDate;
         try {
             maxDate = Optional.ofNullable(criteriaParams.get(RequestParams.CREATE_LTE.value)).map(LocalDateTime::parse);
-        } catch (DateTimeParseException e){
+        } catch (DateTimeParseException e) {
             maxDate = Optional.empty();
         }
 
@@ -92,42 +89,6 @@ public class CertificateCriteria extends Criteria {
 
     public boolean isTagAdded() {
         return !tagNames.isEmpty();
-    }
-
-    public Set<String> getTagNames() {
-        return tagNames;
-    }
-
-    public Float getMinPrice() {
-        return minPrice;
-    }
-
-    public Float getMaxPrice() {
-        return maxPrice;
-    }
-
-    public String getNamePart() {
-        return namePart;
-    }
-
-    public LocalDateTime getMinCreateDate() {
-        return minCreateDate;
-    }
-
-    public LocalDateTime getMaxCreateDate() {
-        return maxCreateDate;
-    }
-
-    public String getDescriptionPart() {
-        return descriptionPart;
-    }
-
-    public SortingField getField() {
-        return field;
-    }
-
-    public SortingOrder getOrder() {
-        return order;
     }
 
     public enum SortingField {
@@ -141,7 +102,7 @@ public class CertificateCriteria extends Criteria {
         }
     }
 
-    public enum RequestParams{
+    public enum RequestParams {
         SORT("sort"), NAME_PART("name_part"), DESCRIPTION_PART("description_part"), ORDER("order"),
         TAGS("tags"), PRICE_GTE("price-gte"), PRICE_LTE("price-lte"), CREATE_GTE("create_date-gte"),
         CREATE_LTE("create_date-lte");
@@ -156,13 +117,13 @@ public class CertificateCriteria extends Criteria {
     @Override
     public Map<String, String> getCriteriaAsMap() {
         Map<String, String> paramsMap = new LinkedHashMap<>();
-        if (isTagAdded()){
+        if (isTagAdded()) {
             paramsMap.put(RequestParams.TAGS.value, String.join(",", tagNames));
         }
-        if (!namePart.isBlank()){
+        if (!namePart.isBlank()) {
             paramsMap.put(RequestParams.NAME_PART.value, namePart);
         }
-        if (!descriptionPart.isBlank()){
+        if (!descriptionPart.isBlank()) {
             paramsMap.put(RequestParams.DESCRIPTION_PART.value, descriptionPart);
         }
         if (minPrice != 0.0f) {
@@ -183,13 +144,4 @@ public class CertificateCriteria extends Criteria {
         return paramsMap;
     }
 
-    @Override
-    public String toString() {
-        return "CertificateCriteria{" +
-                "tagNames=" + tagNames +
-                ", namePart='" + namePart + '\'' +
-                ", field=" + field +
-                ", order=" + order +
-                '}';
-    }
 }

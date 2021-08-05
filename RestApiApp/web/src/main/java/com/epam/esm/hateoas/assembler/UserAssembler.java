@@ -38,8 +38,8 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
     public UserModel toModel(User entity) {
         UserModel model = instantiateModel(entity);
         modelMapper.map(entity, model);
-        Link selfRel = linkTo(methodOn(UserController.class).getByEmail(entity.getEmail())).withSelfRel();
-        Link ordersRel = linkTo(methodOn(UserController.class).getOrdersOfUser(entity.getEmail(),10, FIRST,
+        Link selfRel = linkTo(methodOn(UserController.class).getById(entity.getId())).withSelfRel();
+        Link ordersRel = linkTo(methodOn(UserController.class).getOrdersOfUser(entity.getId(),10, FIRST,
                 new HashMap<>())).withRel("orders");
         model.add(selfRel, ordersRel);
         return model;

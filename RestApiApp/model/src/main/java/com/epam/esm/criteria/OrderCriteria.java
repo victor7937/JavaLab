@@ -1,21 +1,24 @@
 package com.epam.esm.criteria;
 
-import com.epam.esm.entity.Order;
+
 import com.epam.esm.entity.Order_;
+import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import javax.persistence.metamodel.SingularAttribute;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class OrderCriteria extends Criteria{
 
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.parse("2021-06-01T00:00:00");
-    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.now();
+    private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.parse("2025-01-01T00:00:00");
+
 
     private SortingField sortingField;
 
@@ -29,7 +32,7 @@ public class OrderCriteria extends Criteria{
 
     private LocalDateTime maxTime;
 
-    public OrderCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<Float> minCost,
+    private OrderCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<Float> minCost,
                          Optional<Float> maxCost, Optional<LocalDateTime> minTime, Optional<LocalDateTime> maxTime){
         this.sortingField = sortingField.orElse(SortingField.ID);
         this.sortingOrder = sortingOrder.orElse(SortingOrder.ASC);
@@ -41,14 +44,8 @@ public class OrderCriteria extends Criteria{
     }
 
     public static OrderCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<SortingField> sortingField = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> SortingField.valueOf(s.toUpperCase()));
-
-
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
+        Optional<SortingField> sortingField = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
         Optional<Float> minCost = Optional.ofNullable(criteriaParams.get(RequestParams.COST_GTE.value))
                 .filter(NumberUtils::isCreatable)
@@ -75,39 +72,12 @@ public class OrderCriteria extends Criteria{
         return new OrderCriteria(sortingField, order, minCost, maxCost, minTime, maxTime);
     }
 
-
-
-    public SortingField getSortingField() {
-        return sortingField;
-    }
-
-    public SortingOrder getSortingOrder() {
-        return sortingOrder;
-    }
-
-    public Float getMinCost() {
-        return minCost;
-    }
-
-    public Float getMaxCost() {
-        return maxCost;
-    }
-
-    public LocalDateTime getMinTime() {
-        return minTime;
-    }
-
-    public LocalDateTime getMaxTime() {
-        return maxTime;
-    }
-
-
     public enum SortingField {
-        ID(Order_.id), COST(Order_.cost), TIME(Order_.timeOfPurchase);
+        ID(Order_.ID), COST(Order_.COST), TIME(Order_.TIME_OF_PURCHASE);
 
-        public final SingularAttribute<Order, ?> attribute;
+        public final String attribute;
 
-        SortingField(SingularAttribute<Order, ?> attribute) {
+        SortingField(String attribute) {
             this.attribute = attribute;
         }
     }

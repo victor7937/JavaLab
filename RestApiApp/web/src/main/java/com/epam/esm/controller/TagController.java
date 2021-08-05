@@ -2,14 +2,12 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.*;
 import com.epam.esm.service.TagService;
-import com.epam.esm.util.StatusCodeGenerator;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,15 +21,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class TagController {
 
     private final TagService tagService;
-    Logger logger = Logger.getLogger(TagController.class);
-
-    private static final String EXCEPTION_CAUGHT_MSG = "Exception was caught in Tag Controller";
 
     @Autowired
     public TagController(TagService tagService) {
         this.tagService = tagService;
     }
-
 
     /**
      * @param page current page
@@ -40,20 +34,11 @@ public class TagController {
      * @return page with tags found
      */
     @GetMapping(produces = { "application/prs.hal-forms+json" })
+    @PreAuthorize("hasAuthority('tags:read')")
     public PagedModel<Tag> getTags(@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
                                    @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                    @RequestParam (name = "part", required = false, defaultValue = "") String namePart) {
-        PagedDTO<Tag> pagedDTO;
-        try {
-            pagedDTO = tagService.get(namePart, size, page);
-        } catch (IncorrectPageServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        PagedDTO<Tag> pagedDTO = tagService.get(namePart, size, page);
         if (pagedDTO.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
@@ -66,19 +51,9 @@ public class TagController {
      * @return tag found in JSON
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('tags:read')")
     public Tag getTagById (@PathVariable("id") Long id){
-        Tag tag;
-        try {
-            tag = tagService.getById(id);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e){
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
-        return tag;
+        return tagService.getById(id);
     }
 
     /**
@@ -87,18 +62,9 @@ public class TagController {
      * @return tag that was added in JSON
      */
     @PostMapping()
-    public ResponseEntity<Object> addNewTag(@RequestBody Tag tag) {
-        try {
-            tagService.add(tag);
-        } catch (AlreadyExistServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.CONFLICT, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PreAuthorize("hasAuthority('tags:write')")
+    public Tag addNewTag(@RequestBody Tag tag) {
+        return tagService.add(tag);
     }
 
     /**
@@ -107,17 +73,9 @@ public class TagController {
      * @return OK response if tag was deleted
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('tags:write')")
     public ResponseEntity<Object> deleteTag (@PathVariable("id") Long id){
-        try {
-            tagService.delete(id);
-        } catch (NotFoundServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.NOT_FOUND, this.getClass()), e.getMessage(), e);
-        } catch (IncorrectDataServiceException e) {
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.BAD_REQUEST, this.getClass()), e.getMessage(), e);
-        } catch (ServiceException e) {
-            logger.error(EXCEPTION_CAUGHT_MSG, e);
-            throw new ResponseStatusException(StatusCodeGenerator.getCode(HttpStatus.INTERNAL_SERVER_ERROR, this.getClass()), e.getMessage(), e);
-        }
+        tagService.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -126,6 +84,7 @@ public class TagController {
      * @return Tag that was found
      */
     @GetMapping("/most-used-tag")
+    @PreAuthorize("hasAuthority('tags:read')")
     Tag getMostUsedTagOfValuableCustomer() {
         return tagService.getMostUsedTagOfValuableCustomer();
     }

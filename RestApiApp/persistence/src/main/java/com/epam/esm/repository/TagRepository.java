@@ -1,56 +1,57 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.RepositoryException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 
 /**
  * Repository for manipulating tag data in database
  */
-public interface TagRepository {
+@Repository
+public interface TagRepository extends JpaRepository<Tag,Long> {
 
     /**
-     * Gets page with tags form database by name part
-     * @param namePart - part of tags name for searching
-     * @param pageSize - size of one page
-     * @param pageNumber - number of a current page
-     * @return page with tags which match the name part
-     * @throws RepositoryException if no such page or some troubles in database were happened
+     * Gets tag by its name from database if it exists
+     * @param name - name of the tag
+     * @return optional that contains a tag or empty Optional if it wasn't found
      */
-    PagedDTO<Tag> get(String namePart, int pageSize, int pageNumber) throws RepositoryException;
+    Optional<Tag> findTagByName(String name);
+
 
     /**
-     * Get one tag if id is correct from database
-     * @param id - id of the tag
-     * @return tag found
-     * @throws RepositoryException if such id exists or some troubles in database were happened
+     * Checks if tag name exists
+     * @param name - name of the tag
+     * @return true if tag exists, else false
      */
-    Tag getById(Long id) throws RepositoryException;
-
-    Tag getByName(String name);
-
-    boolean isTagExists(String name);
+    boolean existsByName(String name);
 
     /**
-     * Add a new tag if such tag is not exist in database
-     * @param tag - tag for adding
-     * @throws RepositoryException when such tag exists in database or some troubles in database
-     * were happened
+     * Gets page of tags by name part
+     * @param namePart - part of tags name
+     * @param pageable - contains info about page size, current page and sorting params
+     * @return page of tags
      */
-    void add(Tag tag) throws RepositoryException;
+    Page<Tag> getTagsByNameLike(String namePart, Pageable pageable);
 
-    /**
-     * Delete tag from database
-     * @param id - id of gift certificate for deleting
-     * @throws RepositoryException if such id exists or some troubles in database were happened
-     */
-    void delete(Long id) throws RepositoryException;
 
     /**
      * Gets the most widely used tag of a user with the highest cost of all orders from database
-     * @return tag found
+     * @return Tag found
      */
+    @Query(value = "SELECT t.id, t.name, COUNT(t.id) as t_count from users u" +
+            " join orders o on u.id = o.users_id" +
+            " join gift_certificate gc on gc.id = o.certificate_id" +
+            " join m2m_certificate_tag m2mct on gc.id = m2mct.cert_id" +
+            " join tag t on t.id = m2mct.tag_id where u.id =" +
+            " (SELECT s.u_id from (SELECT SUM(o.cost) as s_cost, u.id as u_id from orders o" +
+            " join users u on u.id = o.users_id group by u_id order by s_cost DESC LIMIT 1) s)" +
+            " group by t.name order by t_count desc LIMIT 1", nativeQuery = true)
     Tag getMostUsedTagOfValuableCustomer ();
 
 }

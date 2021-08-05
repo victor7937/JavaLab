@@ -3,8 +3,9 @@ package com.epam.esm;
 import com.epam.esm.criteria.OrderCriteria;
 import com.epam.esm.dto.OrderDTO;
 import com.epam.esm.dto.PagedDTO;
-import com.epam.esm.entity.*;
+import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Order;
+import com.epam.esm.entity.User;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.OrderRepository;
@@ -19,20 +20,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.PagedModel;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
+
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTests {
@@ -56,8 +60,9 @@ public class OrderServiceTests {
     final PagedDTO<Order> orderPagedDtoSample = new PagedDTO<>(orderListSample, new PagedModel.PageMetadata(1,1,1));
     final OrderCriteria criteriaSample = OrderCriteria.createCriteria(new HashMap<>());
     final OrderDTO sampleDTO = new OrderDTO("someemail@mail.ru", 1L);
-    final String sampleEmail = "user@mail.com";
+    //final String userIdSample = "user@mail.com";
     final long idSample = 1L;
+    final Long userIdSample = 1L;
 
     @BeforeEach
     void init(){
@@ -68,80 +73,70 @@ public class OrderServiceTests {
     class GetOrdersTests{
 
         @Test
-        void CorrectGettingOrdersOfUserShouldReturnPagedDTO() throws RepositoryException, ServiceException {
-            PagedDTO<Order> expectedDto = orderPagedDtoSample;
-            PagedDTO<Order> emptyDto = new PagedDTO<>();
-            doReturn(expectedDto, emptyDto).when(orderRepository).getOrders(anyString(), any(OrderCriteria.class), anyInt(), anyInt());
-            assertEquals(expectedDto, service.getOrdersOfUser(sampleEmail, criteriaSample,3,1));
-            assertTrue(service.getOrdersOfUser(sampleEmail, criteriaSample,1,1).isEmpty());
-            verify(orderRepository, times(2)).getOrders(anyString(), any(OrderCriteria.class), anyInt(), anyInt());
-        }
-
-        @Test
-        void gettingWithIncorrectPageParamsShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectPageParamsShouldRaiseException(){
             assertAll(
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(sampleEmail, criteriaSample,-1,2)),
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(sampleEmail, criteriaSample,2,-1)),
-                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(sampleEmail, criteriaSample,0,0))
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(userIdSample, criteriaSample,-1,2)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(userIdSample, criteriaSample,2,-1)),
+                    () -> assertThrows(IncorrectDataServiceException.class, () -> service.getOrdersOfUser(userIdSample, criteriaSample,0,0))
             );
-            verify(orderRepository, never()).getOrders(anyString(), any(OrderCriteria.class), anyInt(), anyInt());
+            verify(orderRepository, never()).getOrdersByUser_IdAndCostBetweenAndTimeOfPurchaseBetween(any(), any(), any(), any(),any(), any());
         }
 
         @Test
-        void requestForNonExistentPageShouldRaiseException() throws RepositoryException {
-            when(orderRepository.getOrders(anyString(), any(OrderCriteria.class), anyInt(), anyInt())).thenThrow(new IncorrectPageRepositoryException());
-            assertThrows(IncorrectPageServiceException.class, () -> service.getOrdersOfUser(sampleEmail, criteriaSample, 1, 999999));
-            verify(orderRepository).getOrders(sampleEmail, criteriaSample, 1, 999999);
+        void requestForNonExistentPageShouldRaiseException(){
+            when(orderRepository.getOrdersByUser_IdAndCostBetweenAndTimeOfPurchaseBetween(anyLong(),anyFloat(), anyFloat(),
+                    any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class) )).thenReturn(Page.empty());
+            when(userRepository.existsById(userIdSample)).thenReturn(true);
+            assertTrue(service.getOrdersOfUser(userIdSample, criteriaSample, 1, 999999).isEmpty());
+            verify(orderRepository).getOrdersByUser_IdAndCostBetweenAndTimeOfPurchaseBetween(anyLong(),anyFloat(), anyFloat(),
+                    any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class));
         }
 
         @Test
-        void gettingWithIncorrectEmailShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectEmailShouldRaiseException(){
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser(null, criteriaSample, 1,1)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser("", criteriaSample, 1,1)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser("   ", criteriaSample, 1,1)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser("someString", criteriaSample, 1,1)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser("somnotemail111@ffffff.f.f.ff", criteriaSample, 1,1))
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser(-1L, criteriaSample, 1,1)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrdersOfUser(0L, criteriaSample, 1,1))
             );
-            verify(orderRepository, never()).getOrders(anyString(), any(OrderCriteria.class), anyInt(), anyInt());
+            verify(orderRepository, never()).getOrdersByUser_IdAndCostBetweenAndTimeOfPurchaseBetween(anyLong(),anyFloat(), anyFloat(),
+                    any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class));
         }
     }
 
     @Nested
-    class GettingByEmailTests {
+    class GettingByIdTests {
 
         @Test
-        void correctGettingByEmailShouldReturnOrder() throws RepositoryException, ServiceException {
+        void correctGettingByIdShouldReturnOrder(){
             Order expected = orderSample;
-            when(orderRepository.getOrder(sampleEmail, idSample)).thenReturn(expected);
-            assertEquals(expected, service.getOrder(sampleEmail, idSample));
-            verify(orderRepository).getOrder(anyString(), anyLong());
+            when(orderRepository.findOrderByUser_IdAndId(userIdSample, idSample)).thenReturn(Optional.of(expected));
+            assertEquals(expected, service.getOrder(userIdSample, idSample));
+            verify(orderRepository).findOrderByUser_IdAndId(anyLong(), anyLong());
         }
 
         @Test
-        void gettingWithNotExistentEmailOrIdShouldRaiseException() throws RepositoryException {
-            String notExistentEmail = "some_email@some.com";
+        void gettingWithNotExistentIdOrIdShouldRaiseException(){
+            Long notExistentUserId = 393939L;
             Long notExistentId = 99999L;
-            when(orderRepository.getOrder(notExistentEmail, idSample)).thenThrow(new DataNotExistRepositoryException());
-            when(orderRepository.getOrder(sampleEmail, notExistentId)).thenThrow(new DataNotExistRepositoryException());
-            assertThrows(NotFoundServiceException.class,() -> service.getOrder(notExistentEmail, idSample));
-            assertThrows(NotFoundServiceException.class,() -> service.getOrder(sampleEmail, notExistentId));
+            when(orderRepository.findOrderByUser_IdAndId(notExistentUserId, notExistentId)).thenReturn(Optional.empty());
+            assertThrows(NotFoundServiceException.class,() -> service.getOrder(notExistentUserId, notExistentId));
 
-            verify(orderRepository, times(2)).getOrder(anyString(), anyLong());
+            verify(orderRepository).findOrderByUser_IdAndId(anyLong(), anyLong());
         }
 
         @Test
-        void gettingWithIncorrectEmailOrIdShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectUserIdOrOrderIdShouldRaiseException(){
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(null, idSample)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(sampleEmail, null)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(userIdSample, null)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(null, null)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder("", idSample)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder("someString", idSample)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder("somnotemail111@ffffff.f.f.ff", idSample)),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(sampleEmail, -1L))
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(-1L, idSample)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(0L, idSample)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(userIdSample, 0L)),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.getOrder(userIdSample, -1L))
             );
-            verify(orderRepository, never()).getOrder(anyString(), anyLong());
+            verify(orderRepository, never()).findOrderByUser_IdAndId(anyLong(), anyLong());
         }
     }
 
@@ -149,6 +144,7 @@ public class OrderServiceTests {
     class MakingOrderTests {
 
         Order completeOrder;
+        String userEmailSample = "good_email@email.com";
         User userFound = new User(sampleDTO.getEmail(), "someName", "someSurname");
         GiftCertificate giftCertificateFound = new GiftCertificate(sampleDTO.getId(), "someString","someString",
                 1.1f, 5, LocalDateTime.now(), LocalDateTime.now());
@@ -158,51 +154,51 @@ public class OrderServiceTests {
             completeOrder = new Order();
             completeOrder.setUser(userFound);
             completeOrder.setGiftCertificate(giftCertificateFound);
-            completeOrder.setTimeOfPurchase(LocalDateTime.now());
+            completeOrder.setCost(giftCertificateFound.getPrice());
         }
 
         @Test
-        void correctOrderingShouldReturnCompleteOrder () throws RepositoryException, ServiceException {
-            when(orderRepository.makeOrder(any(Order.class))).thenReturn(completeOrder);
-            when(userRepository.getByEmail(anyString())).thenReturn(userFound);
-            when(certificateRepository.getById(anyLong())).thenReturn(giftCertificateFound);
+        void correctOrderingShouldReturnCompleteOrder () {
+            when(orderRepository.save(any(Order.class))).thenReturn(completeOrder);
+            when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userFound));
+            when(certificateRepository.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(giftCertificateFound));
             assertEquals(completeOrder, service.makeOrder(sampleDTO));
-            verify(orderRepository).makeOrder(any(Order.class));
+            verify(orderRepository).save(any(Order.class));
         }
 
         @Test
-        void orderingWithNotExistentEmailOrIdShouldRaiseException() throws RepositoryException {
+        void orderingWithNotExistentUserIdOrIdShouldRaiseException(){
             String notExistentEmail = "some_email@some.com";
             Long notExistentId = 99999L;
 
-            lenient().when(userRepository.getByEmail(notExistentEmail)).thenThrow(DataNotExistRepositoryException.class);
-            lenient().when(userRepository.getByEmail(sampleEmail)).thenReturn(userFound);
-            lenient().when(certificateRepository.getById(notExistentId)).thenThrow(DataNotExistRepositoryException.class);
-            lenient().when(certificateRepository.getById(idSample)).thenReturn(giftCertificateFound);
+            lenient().when(userRepository.findByEmail(notExistentEmail)).thenReturn(Optional.empty());
+            lenient().when(userRepository.findByEmail(userEmailSample)).thenReturn(Optional.ofNullable(userFound));
+            lenient().when(certificateRepository.findById(notExistentId)).thenReturn(Optional.empty());
+            lenient().when(certificateRepository.findById(idSample)).thenReturn(Optional.ofNullable(giftCertificateFound));
 
             assertAll(
                     () ->  assertThrows(NotFoundServiceException.class,() -> service.makeOrder(new OrderDTO(notExistentEmail, idSample))),
-                    () ->  assertThrows(NotFoundServiceException.class,() -> service.makeOrder(new OrderDTO(sampleEmail, notExistentId))),
+                    () ->  assertThrows(NotFoundServiceException.class,() -> service.makeOrder(new OrderDTO(userEmailSample, notExistentId))),
                     () ->  assertThrows(NotFoundServiceException.class,() -> service.makeOrder(new OrderDTO(notExistentEmail, notExistentId)))
             );
 
-            verify(orderRepository, never()).makeOrder(any(Order.class));
+            verify(orderRepository, never()).save(any(Order.class));
         }
 
 
         @Test
-        void addingIncorrectOrderShouldRaiseException() throws RepositoryException {
+        void addingIncorrectOrderShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(null)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(new OrderDTO(null, idSample))),
-                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(new OrderDTO(sampleEmail, null))),
+                    () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(new OrderDTO(userEmailSample, null))),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(new OrderDTO("", idSample))),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.makeOrder(new OrderDTO("somenotemail", idSample)))
             );
 
-            verify(orderRepository, never()).makeOrder(any(Order.class));
-            verify(userRepository, never()).getByEmail(anyString());
-            verify(certificateRepository, never()).getById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(userRepository, never()).findByEmail(anyString());
+            verify(certificateRepository, never()).findById(anyLong());
         }
     }
 

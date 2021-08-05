@@ -1,41 +1,32 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.criteria.UserCriteria;
-import com.epam.esm.dto.PagedDTO;
 import com.epam.esm.entity.User;
-import com.epam.esm.exception.RepositoryException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 
 /**
  * Repository for manipulating users data in database
  */
-public interface UserRepository {
+@Repository
+public interface UserRepository extends JpaRepository<User, Long>{
 
     /**
-     * Gets page with users from database
-     * @param criteria - criteria with params for filtering and sorting
-     * @param pageSize - size of one page
-     * @param pageNumber - number of a current page
-     * @return page with users found
-     * @throws RepositoryException if page is not exist and troubles in database were happened
+     * Gets user by its email if the user exists
+     * @param email - email of a user
+     * @return optional that contains a user or empty Optional if it wasn't found
      */
-    PagedDTO<User> getByCriteria(UserCriteria criteria, int pageSize, int pageNumber) throws RepositoryException;
-
-    /**
-     * Gets user by its email
-     * @param email email of a user
-     * @return user found
-     * @throws RepositoryException if user with such email is not exists or troubles in database were happened
-     */
-    User getByEmail(String email) throws RepositoryException;
+    Optional<User> findByEmail(String email);
 
 
     /**
-     * Checks if user with such email exists in database
-     * @param email - email of user for checking
-     * @return true if user was found, else false
+     * Checks if such user is exist by its email
+     * @param email - email of a user
+     * @return true if user exists, else false
      */
-    boolean isUserExists(String email);
-
-    void persist(User user);
+    boolean existsUserByEmail(String email);
 }

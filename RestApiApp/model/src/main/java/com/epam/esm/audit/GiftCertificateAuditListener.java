@@ -9,9 +9,10 @@ import java.time.LocalDateTime;
 public class GiftCertificateAuditListener {
 
     @PrePersist
-    public void setDateTimeBeforeCreating(GiftCertificate giftCertificate){
+    public void setDateTimeAndDeletedBeforeCreating(GiftCertificate giftCertificate){
         giftCertificate.setCreateDate(LocalDateTime.now());
         giftCertificate.setLastUpdateDate(LocalDateTime.now());
+        giftCertificate.setDeleted(false);
     }
 
     @PreUpdate

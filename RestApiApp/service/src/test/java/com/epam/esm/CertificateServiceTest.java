@@ -7,6 +7,7 @@ import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.repository.GiftCertificateRepository;
+import com.epam.esm.repository.TagRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.impl.GiftCertificateServiceImpl;
 import com.epam.esm.validator.impl.CertificateCriteriaValidator;
@@ -33,6 +34,9 @@ public class CertificateServiceTest {
     @Mock
     GiftCertificateRepository repository;
 
+    @Mock
+    TagRepository tagRepository;
+
     GiftCertificateService service;
 
     final GiftCertificate certificateSample = new GiftCertificate("name","test GiftCertificate",23.5f,2);
@@ -47,35 +51,35 @@ public class CertificateServiceTest {
 
     @BeforeEach
     void init(){
-        service = new GiftCertificateServiceImpl(repository, new CertificateValidator(), new CertificateCriteriaValidator());
+        service = new GiftCertificateServiceImpl(repository, tagRepository, new CertificateValidator(), new CertificateCriteriaValidator());
     }
 
     @Nested
     class GettingByIdTests {
 
         @Test
-        void correctGettingByIdShouldReturnCertificate() throws RepositoryException, ServiceException {
+        void correctGettingByIdShouldReturnCertificate(){
             GiftCertificate expected = certificateSample;
             certificateSample.setId(idSample);
-            when(repository.getById(Mockito.anyLong())).thenReturn(expected);
+            when(repository.findById(Mockito.anyLong())).thenReturn(Optional.of(expected));
             assertEquals(expected, service.getById(idSample));
-            verify(repository).getById(idSample);
+            verify(repository).findById(idSample);
         }
 
         @Test
-        void gettingWithNotExistedIdShouldRaiseException() throws RepositoryException {
-            when(repository.getById(notExistingIdSample)).thenThrow(new DataNotExistRepositoryException());
+        void gettingWithNotExistedIdShouldRaiseException(){
+            when(repository.findById(notExistingIdSample)).thenReturn(Optional.empty());
             assertThrows(NotFoundServiceException.class,() -> service.getById(notExistingIdSample));
-            verify(repository).getById(notExistingIdSample);
+            verify(repository).findById(notExistingIdSample);
         }
 
         @Test
-        void gettingWithIncorrectIdShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectIdShouldRaiseException(){
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getById(-1L)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.getById(null))
             );
-            verify(repository, never()).getById(any(Long.class));
+            verify(repository, never()).findById(any(Long.class));
         }
     }
 
@@ -83,26 +87,26 @@ public class CertificateServiceTest {
     class DeletingTests {
 
         @Test
-        void correctDeletingShouldNotRaiseException() throws RepositoryException, ServiceException {
-            doNothing().when(repository).delete(idSample);
+        void correctDeletingShouldNotRaiseException(){
+            certificateSample.setDeleted(false);
+            when(repository.findById(anyLong())).thenReturn(Optional.of(certificateSample));
             service.delete(idSample);
-            verify(repository).delete(idSample);
         }
 
         @Test
-        void gettingWithNotExistedIdShouldRaiseException() throws RepositoryException {
-            doThrow(new DataNotExistRepositoryException()).when(repository).delete(notExistingIdSample);
+        void gettingWithNotExistedIdShouldRaiseException(){
+            when(repository.findById(anyLong())).thenReturn(Optional.empty());
             assertThrows(NotFoundServiceException.class, () -> service.delete(notExistingIdSample));
-            verify(repository).delete(notExistingIdSample);
+            verify(repository, never()).deleteById(notExistingIdSample);
         }
 
         @Test
-        void gettingWithIncorrectIdShouldRaiseException() throws RepositoryException {
+        void gettingWithIncorrectIdShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(-1L)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.delete(null))
             );
-            verify(repository, never()).delete(any(Long.class));
+            verify(repository, never()).deleteById(any(Long.class));
         }
     }
 
@@ -134,23 +138,15 @@ public class CertificateServiceTest {
     @Nested
     class AddingTests {
         @Test
-        void correctAddingNewGiftCertificateShouldNotRaiseException () throws RepositoryException, ServiceException {
+        void correctAddingNewGiftCertificateShouldNotRaiseException (){
             GiftCertificate giftCertificateForReturn = certificateSample;
-            when(repository.add(any(CertificateDTO.class))).thenReturn(giftCertificateForReturn);
+            when(repository.save(any(GiftCertificate.class))).thenReturn(giftCertificateForReturn);
             assertEquals(giftCertificateForReturn, service.add(certificateDTOSample));
-            verify(repository).add(any(CertificateDTO.class));
-        }
-
-
-        @Test
-        void addingGiftCertificateFailShouldThrowException() throws RepositoryException, ServiceException {
-            doThrow(new RepositoryException()).when(repository).add(any(CertificateDTO.class));
-            assertThrows(ServiceException.class, () -> service.add(certificateDTOSample));
-            verify(repository).add(any(CertificateDTO.class));
+            verify(repository).save(any(GiftCertificate.class));
         }
 
         @Test
-        void addingIncorrectGiftCertificateShouldRaiseException() throws RepositoryException {
+        void addingIncorrectGiftCertificateShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.add(null)),
                     () -> assertThrows(IncorrectDataServiceException.class,() -> service.add( new CertificateDTO("","test1",1.1f,1, new HashSet<>()))),
@@ -161,7 +157,7 @@ public class CertificateServiceTest {
             Set<Tag> tags = Set.of(new Tag("name"),new Tag(null));
             certificateForAdding.setTags(tags);
             assertThrows(IncorrectDataServiceException.class,() -> service.add(certificateForAdding));
-            verify(repository, never()).add(any());
+            verify(repository, never()).save(any());
         }
     }
 
@@ -169,21 +165,21 @@ public class CertificateServiceTest {
     class UpdatingTests{
 
         @Test
-        void correctUpdatingShouldReturnModifiedGiftCertificate() throws RepositoryException, ServiceException {
-            when(repository.update(any(CertificateDTO.class), anyLong())).thenReturn(certificateSample2);
+        void correctUpdatingShouldReturnModifiedGiftCertificate() {
+            when(repository.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(certificateSample2));
             assertEquals(certificateSample2, service.update(certificateDTOSample, 1L));
-            verify(repository).update(any(CertificateDTO.class),anyLong());
+            verify(repository).findByIdAndDeletedIsFalse(anyLong());
        }
 
        @Test
-       void updatingWithIncorrectValuesShouldRaiseException() throws RepositoryException {
+       void updatingWithIncorrectValuesShouldRaiseException() {
             assertAll(
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update(null, 1L)),
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateDTOSample, null)),
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( null, null)),
                     () -> assertThrows(IncorrectDataServiceException.class, () -> service.update( certificateDTOSample, -1L))
             );
-           verify(repository, never()).update(any(), any());
+           verify(repository, never()).findById(anyLong());
        }
     }
 }

@@ -37,8 +37,8 @@ public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, O
     public OrderModel toModel(Order entity) {
         OrderModel model = instantiateModel(entity);
         modelMapper.map(entity, model);
-        Link self = linkTo(methodOn(UserController.class).getOrderOfUser(entity.getUser().getEmail(), entity.getId())).withSelfRel();
-        Link userLink = linkTo(methodOn(UserController.class).getByEmail(entity.getUser().getEmail())).withRel("user");
+        Link self = linkTo(methodOn(UserController.class).getOrderOfUser(entity.getUser().getId(), entity.getId())).withSelfRel();
+        Link userLink = linkTo(methodOn(UserController.class).getById(entity.getUser().getId())).withRel("user");
         Link certificateLink = linkTo(methodOn(GiftCertificateController.class).getCertificateById(entity.getGiftCertificate()
                 .getId())).withRel("certificate");
         model.add(self, userLink, certificateLink);
@@ -49,22 +49,22 @@ public class OrderAssembler extends RepresentationModelAssemblerSupport<Order, O
     @Override
     public PagedModel<OrderModel> toPagedModel(Collection<? extends Order> entities, PagedModel.PageMetadata metadata, Criteria criteria) {
         PagedModel<OrderModel> pagedModel = PagedModel.of(entities.stream().map(this::toModel).collect(Collectors.toList()), metadata);
-        Order order = entities.stream().findAny().get();
-        addToPagesLinks(pagedModel, order.getUser().getEmail(), metadata,criteria.getCriteriaAsMap());
+        Order order = entities.stream().collect(Collectors.toList()).get(0);
+        addToPagesLinks(pagedModel, order.getUser().getId(), metadata,criteria.getCriteriaAsMap());
         return pagedModel;
     }
 
-    private void addToPagesLinks(PagedModel<OrderModel> pagedModel, String email, PagedModel.PageMetadata metadata , Map<String, String> params){
+    private void addToPagesLinks(PagedModel<OrderModel> pagedModel, Long id, PagedModel.PageMetadata metadata , Map<String, String> params){
         int size = (int) metadata.getSize();
         int number = (int) metadata.getNumber();
-        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, number, params)).withRel(IanaLinkRelations.CURRENT));
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(id, size, number, params)).withRel(IanaLinkRelations.CURRENT));
         if (metadata.getNumber() < metadata.getTotalPages()){
-            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser( email, size, number + FIRST, params)).withRel(IanaLinkRelations.NEXT));
+            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(id, size, number + FIRST, params)).withRel(IanaLinkRelations.NEXT));
         }
         if (metadata.getNumber() != FIRST){
-            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, number - FIRST, params)).withRel(IanaLinkRelations.PREV));
+            pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(id, size, number - FIRST, params)).withRel(IanaLinkRelations.PREV));
         }
-        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser( email, size, FIRST, params)).withRel(IanaLinkRelations.FIRST));
-        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(email, size, (int) metadata.getTotalPages(), params)).withRel(IanaLinkRelations.LAST));
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(id, size, FIRST, params)).withRel(IanaLinkRelations.FIRST));
+        pagedModel.add(linkTo(methodOn(UserController.class).getOrdersOfUser(id, size, (int) metadata.getTotalPages(), params)).withRel(IanaLinkRelations.LAST));
     }
 }

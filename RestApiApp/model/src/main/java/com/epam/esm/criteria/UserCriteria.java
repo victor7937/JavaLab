@@ -3,6 +3,7 @@ package com.epam.esm.criteria;
 
 import com.epam.esm.entity.User;
 import com.epam.esm.entity.User_;
+import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 
 import javax.persistence.metamodel.SingularAttribute;
@@ -10,68 +11,48 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class UserCriteria extends Criteria {
 
-    private String namePart;
+    private String firstNamePart;
 
-    private String surnamePart;
+    private String lastNamePart;
 
     private SortingField sortingField;
 
     private SortingOrder sortingOrder;
 
-    public UserCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<String> namePart,
-                        Optional<String> surnamePart ){
-        this.sortingField = sortingField.orElse(SortingField.EMAIL);
+    private UserCriteria(Optional<SortingField> sortingField, Optional<SortingOrder> sortingOrder, Optional<String> firstNamePart,
+                        Optional<String> lastNamePart){
+        this.sortingField = sortingField.orElse(SortingField.ID);
         this.sortingOrder = sortingOrder.orElse(SortingOrder.ASC);
-        this.namePart = namePart.orElse("");
-        this.surnamePart = surnamePart.orElse("");
+        this.firstNamePart = firstNamePart.orElse("");
+        this.lastNamePart = lastNamePart.orElse("");
     }
 
     public static UserCriteria createCriteria(Map<String, String> criteriaParams) {
-        Optional<SortingField> sortingField = Optional.ofNullable(criteriaParams.get(RequestParams.SORT.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingField.class, s.toUpperCase()))
-                .map(s -> SortingField.valueOf(s.toUpperCase()));
+        Optional<SortingField> sortingField = enumOf(criteriaParams.get(RequestParams.SORT.value), SortingField.class);
+        Optional<SortingOrder> order = enumOf(criteriaParams.get(RequestParams.ORDER.value), SortingOrder.class);
 
-        Optional<SortingOrder> order = Optional.ofNullable(criteriaParams.get(RequestParams.ORDER.value))
-                .filter(s -> EnumUtils.isValidEnum(SortingOrder.class, s.toUpperCase()))
-                .map(s -> SortingOrder.valueOf(s.toUpperCase()));
-
-        Optional<String> namePart = Optional.ofNullable(criteriaParams.get(RequestParams.NAME.value));
-        Optional<String> surnamePart = Optional.ofNullable(criteriaParams.get(RequestParams.SURNAME.value));
+        Optional<String> namePart = Optional.ofNullable(criteriaParams.get(RequestParams.FIRST_NAME.value));
+        Optional<String> surnamePart = Optional.ofNullable(criteriaParams.get(RequestParams.LAST_NAME.value));
 
         return new UserCriteria(sortingField, order, namePart, surnamePart);
     }
 
-    public String getNamePart() {
-        return namePart;
-    }
-
-    public String getSurnamePart() {
-        return surnamePart;
-    }
-
-    public SortingField getSortingField() {
-        return sortingField;
-    }
-
-    public SortingOrder getSortingOrder() {
-        return sortingOrder;
-    }
-
     public enum SortingField {
 
-        NAME(User_.name), SURNAME(User_.surname), EMAIL(User_.email);
+        FIRST_NAME(User_.FIRST_NAME), LAST_NAME(User_.LAST_NAME), EMAIL(User_.EMAIL), ID(User_.ID);
 
-        public final SingularAttribute<User, ?> attribute;
+        public final String attribute;
 
-        SortingField(SingularAttribute<User, ?> attribute) {
+        SortingField(String attribute) {
             this.attribute = attribute;
         }
     }
 
     public enum RequestParams{
-        NAME("name"), SURNAME("surname"), SORT("sort"), ORDER("order");
+        FIRST_NAME("first_name"), LAST_NAME("last_name"), SORT("sort"), ORDER("order");
 
         public final String value;
 
@@ -83,11 +64,11 @@ public class UserCriteria extends Criteria {
     @Override
     public Map<String, String> getCriteriaAsMap(){
         Map<String, String> paramsMap = new LinkedHashMap<>();
-        if (!namePart.isBlank()){
-            paramsMap.put(RequestParams.NAME.value, namePart);
+        if (!firstNamePart.isBlank()){
+            paramsMap.put(RequestParams.FIRST_NAME.value, firstNamePart);
         }
-        if (!surnamePart.isBlank()){
-            paramsMap.put( RequestParams.SURNAME.value, surnamePart);
+        if (!lastNamePart.isBlank()){
+            paramsMap.put(RequestParams.LAST_NAME.value, lastNamePart);
         }
         paramsMap.put(RequestParams.ORDER.value, sortingOrder.toString().toLowerCase());
         paramsMap.put(RequestParams.SORT.value, sortingField.toString().toLowerCase());
